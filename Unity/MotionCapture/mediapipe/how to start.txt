@@ -1,0 +1,13 @@
+Run powershell in this folder,
+
+Terminal 1 → conda activate mediapipe → run_mediapipe.py 0 52733
+Terminal 2 → conda activate mediapipe → run_mediapipe.py 1 52734
+Terminal 3 → conda activate mediapipe → run_mediapipe.py 2 52735
+Terminal 4 → conda activate mediapipe → run_mediapipe.py 3 52736
+
+Terminal 5 → aggregator.py
+
+camera list:
+0 = IR webcam
+1 = Droidcam
+2 = OBS virtual camera

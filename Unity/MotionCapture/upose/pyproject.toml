@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "upose"
+version = "0.1.0"
+description = "A library that calculates joint rotations from mediapipe pose data"
+authors = [{name = "Angelos Barmpoutis", email = "angelos@digitalworlds.ufl.edu"}]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/digitalworlds/UPose"
+"Bug Tracker" = "https://github.com/digitalworlds/UPose/issues"

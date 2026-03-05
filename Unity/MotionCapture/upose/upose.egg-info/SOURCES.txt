@@ -1,0 +1,9 @@
+LICENSE
+README.md
+pyproject.toml
+upose/__init__.py
+upose/upose.py
+upose.egg-info/PKG-INFO
+upose.egg-info/SOURCES.txt
+upose.egg-info/dependency_links.txt
+upose.egg-info/top_level.txt
