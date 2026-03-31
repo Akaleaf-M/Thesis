@@ -7,9 +7,9 @@ public class BoneTrackingCamera : MonoBehaviour
 
     public Vector3 localOffset = new Vector3(0f, 0.1f, -1.2f);
 
-    public float targetSmooth = 6f;     // 骨骼目标点的平滑
-    public float positionSmooth = 4f;   // 相机位置的平滑
-    public float lookSmooth = 4f;       // 相机朝向的平滑
+    public float targetSmooth = 6f;
+    public float positionSmooth = 4f;
+    public float lookSmooth = 4f;
 
     private Transform targetBone;
     private Transform avatarRoot;
@@ -31,14 +31,12 @@ public class BoneTrackingCamera : MonoBehaviour
             initialized = true;
         }
 
-        // 先平滑骨骼目标点
         smoothedTargetPosition = Vector3.Lerp(
             smoothedTargetPosition,
             targetBone.position,
             Time.deltaTime * targetSmooth
         );
 
-        // 再根据平滑后的目标点 + 骨骼朝向计算机位
         Vector3 desiredPosition = smoothedTargetPosition + targetBone.rotation * localOffset;
 
         transform.position = Vector3.Lerp(
@@ -53,6 +51,14 @@ public class BoneTrackingCamera : MonoBehaviour
             desiredRotation,
             Time.deltaTime * lookSmooth
         );
+    }
+
+    public void SetBone(string newBoneName)
+    {
+        boneName = newBoneName;
+        targetBone = null;
+        initialized = false;
+        FindBone();
     }
 
     void FindBone()
