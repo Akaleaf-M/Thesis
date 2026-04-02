@@ -15,6 +15,25 @@ public class FragmentSlot : MonoBehaviour
     [Header("Screen Movement")]
     public float moveSpeed = 1.5f;
 
+    [Header("Normal Screen Shapes")]
+    public Vector3[] normalScreenScales = new Vector3[]
+    {
+        new Vector3(1.6f, 0.9f, 1f),
+        new Vector3(2.0f, 1.125f, 1f),
+        new Vector3(1.2f, 0.675f, 1f)
+    };
+
+    [Header("Distorted Screen Shapes")]
+    public Vector3[] distortedScreenScales = new Vector3[]
+    {
+        new Vector3(1.0f, 1.0f, 1f),
+        new Vector3(0.8f, 1.4f, 1f),
+        new Vector3(2.2f, 0.7f, 1f)
+    };
+
+    [Range(0f, 1f)]
+    public float distortionChance = 0.2f;
+
     private bool isActive = false;
     private float timer = 0f;
 
@@ -41,7 +60,6 @@ public class FragmentSlot : MonoBehaviour
 
         timer += Time.deltaTime;
 
-        // 只让 screen 自己漂移，不移动整个 slot
         if (screenRenderer != null)
         {
             screenRenderer.transform.localPosition = Vector3.Lerp(
@@ -51,7 +69,6 @@ public class FragmentSlot : MonoBehaviour
             );
         }
 
-        // alpha 生命周期
         float alpha = 1f;
 
         if (timer < fadeInTime)
@@ -86,6 +103,7 @@ public class FragmentSlot : MonoBehaviour
         if (screenRenderer != null)
         {
             screenRenderer.transform.localPosition = screenStartLocalPos;
+            ApplyRandomScreenShape();
         }
 
         timer = 0f;
@@ -122,6 +140,31 @@ public class FragmentSlot : MonoBehaviour
         c.a = alpha;
         runtimeMaterial.color = c;
     }
+
+    private void ApplyRandomScreenShape()
+    {
+        if (screenRenderer == null) return;
+
+        bool useDistorted = Random.value < distortionChance;
+        Vector3 chosenScale = Vector3.one;
+
+        if (useDistorted)
+        {
+            if (distortedScreenScales != null && distortedScreenScales.Length > 0)
+           {
+             chosenScale = distortedScreenScales[Random.Range(0, distortedScreenScales.Length)];
+         }
+        }
+        else
+        {
+         if (normalScreenScales != null && normalScreenScales.Length > 0)
+         {
+             chosenScale = normalScreenScales[Random.Range(0, normalScreenScales.Length)];
+         }
+        }
+
+    screenRenderer.transform.localScale = chosenScale;
+}
 
     public bool IsActive()
     {
