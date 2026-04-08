@@ -18,17 +18,19 @@ public class FragmentSlot : MonoBehaviour
     [Header("Normal Screen Shapes")]
     public Vector3[] normalScreenScales = new Vector3[]
     {
+        new Vector3(1.2f, 0.675f, 1f),
         new Vector3(1.6f, 0.9f, 1f),
         new Vector3(2.0f, 1.125f, 1f),
-        new Vector3(1.2f, 0.675f, 1f)
+        new Vector3(2.4f, 1.35f, 1f)
     };
 
     [Header("Distorted Screen Shapes")]
     public Vector3[] distortedScreenScales = new Vector3[]
     {
         new Vector3(1.0f, 1.0f, 1f),
-        new Vector3(0.8f, 1.4f, 1f),
-        new Vector3(2.2f, 0.7f, 1f)
+        new Vector3(0.9f, 1.5f, 1f),
+        new Vector3(2.2f, 0.7f, 1f),
+        new Vector3(1.4f, 0.5f, 1f)
     };
 
     private bool isActive = false;
@@ -97,6 +99,14 @@ public class FragmentSlot : MonoBehaviour
         if (trackingCamera != null)
         {
             trackingCamera.SetBone(profile.boneName);
+            trackingCamera.ApplyCameraProfile(
+                profile.cameraOffset,
+                profile.cameraFOV,
+                profile.targetSmooth,
+                profile.positionSmooth,
+                profile.lookSmooth,
+                profile.useBoneRotation
+            );
         }
 
         screenStartLocalPos = profile.startPos;

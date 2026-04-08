@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 101198848}
   - component: {fileID: 101198850}
   m_Layer: 0
-  m_Name: Cam_P3
+  m_Name: Cam_P6
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -236,9 +236,9 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: a812724d5b20a6343bce88cc2ab7b017, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 3b2d09cfad51a2545b8167e3a3b9eacb, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -266,6 +266,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.8
   lookSmooth: 3
+  useBoneRotation: 0
 --- !u!1 &140203912
 GameObject:
   m_ObjectHideFlags: 0
@@ -279,7 +280,7 @@ GameObject:
   - component: {fileID: 140203914}
   - component: {fileID: 140203916}
   m_Layer: 0
-  m_Name: Cam_P3
+  m_Name: Cam_P4
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -383,9 +384,9 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: a812724d5b20a6343bce88cc2ab7b017, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: ed0a3f40d311a904896bb0555050cd73, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -413,6 +414,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.8
   lookSmooth: 3
+  useBoneRotation: 1
 --- !u!1 &175963315
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,13 +452,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales: []
 --- !u!4 &175963317
 Transform:
   m_ObjectHideFlags: 0
@@ -528,13 +527,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales: []
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,7 +589,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 63f0bef6f1aa2ab41859baae741c852e, type: 2}
   m_TargetDisplay: 0
@@ -682,6 +678,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.5
   lookSmooth: 3
+  useBoneRotation: 1
 --- !u!1 &373973415
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,8 +691,8 @@ GameObject:
   - component: {fileID: 373973418}
   - component: {fileID: 373973416}
   - component: {fileID: 373973417}
-  m_Layer: 0
-  m_Name: Screen_P3
+  m_Layer: 3
+  m_Name: Screen_P7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -726,7 +723,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ad27aea6b6ab0a24ea6780763c5d5413, type: 2}
+  - {fileID: 2100000, guid: 3853df3099088214da8b2617edad78c2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -958,13 +955,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales: []
 --- !u!4 &451796849
 Transform:
   m_ObjectHideFlags: 0
@@ -1019,13 +1013,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales: []
 --- !u!4 &456410828
 Transform:
   m_ObjectHideFlags: 0
@@ -1055,7 +1046,7 @@ GameObject:
   - component: {fileID: 658003238}
   - component: {fileID: 658003237}
   - component: {fileID: 658003236}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Screen_P3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1193,7 +1184,7 @@ MonoBehaviour:
   - {fileID: 456410827}
   - {fileID: 175963316}
   - {fileID: 451796848}
-  minActiveSlots: 3
+  minActiveSlots: 8
   maxActiveSlots: 8
   minSpawnInterval: 0.2
   maxSpawnInterval: 2
@@ -1253,7 +1244,7 @@ GameObject:
   - component: {fileID: 819255306}
   - component: {fileID: 819255308}
   m_Layer: 0
-  m_Name: Cam_P3
+  m_Name: Cam_P7
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1357,9 +1348,9 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: a812724d5b20a6343bce88cc2ab7b017, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 78e13687f5702e54da801d019aa998ce, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -1387,6 +1378,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.8
   lookSmooth: 3
+  useBoneRotation: 0
 --- !u!1 &822051884
 GameObject:
   m_ObjectHideFlags: 0
@@ -1400,7 +1392,7 @@ GameObject:
   - component: {fileID: 822051886}
   - component: {fileID: 822051888}
   m_Layer: 0
-  m_Name: Cam_P3
+  m_Name: Cam_P8
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1504,9 +1496,9 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: a812724d5b20a6343bce88cc2ab7b017, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 29dc8bae54f09a346a73c69af92473ed, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -1534,6 +1526,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.8
   lookSmooth: 3
+  useBoneRotation: 0
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1848,13 +1841,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales: []
 --- !u!4 &1029905885
 Transform:
   m_ObjectHideFlags: 0
@@ -1884,8 +1874,8 @@ GameObject:
   - component: {fileID: 1133127108}
   - component: {fileID: 1133127106}
   - component: {fileID: 1133127107}
-  m_Layer: 0
-  m_Name: Screen_P3
+  m_Layer: 3
+  m_Name: Screen_P5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1916,7 +1906,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ad27aea6b6ab0a24ea6780763c5d5413, type: 2}
+  - {fileID: 2100000, guid: 2c30ac4215c273a4db440b4ab4200a5b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1996,7 +1986,7 @@ GameObject:
   - component: {fileID: 1146656186}
   - component: {fileID: 1146656185}
   - component: {fileID: 1146656184}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Screen_P2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2270,13 +2260,13 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
 --- !u!4 &1224844597
 Transform:
   m_ObjectHideFlags: 0
@@ -2306,8 +2296,8 @@ GameObject:
   - component: {fileID: 1243224184}
   - component: {fileID: 1243224182}
   - component: {fileID: 1243224183}
-  m_Layer: 0
-  m_Name: Screen_P3
+  m_Layer: 3
+  m_Name: Screen_P6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2338,7 +2328,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ad27aea6b6ab0a24ea6780763c5d5413, type: 2}
+  - {fileID: 2100000, guid: 2e036339046856543a875da5e36f757b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2418,8 +2408,8 @@ GameObject:
   - component: {fileID: 1338753623}
   - component: {fileID: 1338753621}
   - component: {fileID: 1338753622}
-  m_Layer: 0
-  m_Name: Screen_P3
+  m_Layer: 3
+  m_Name: Screen_P4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2450,7 +2440,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ad27aea6b6ab0a24ea6780763c5d5413, type: 2}
+  - {fileID: 2100000, guid: 4d131be356bbaeb41be9005023a52ef0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2572,13 +2562,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 1}
+  - {x: 3, y: 3, z: 1}
+  distortedScreenScales: []
 --- !u!1 &1429016569
 GameObject:
   m_ObjectHideFlags: 0
@@ -2681,7 +2668,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: a812724d5b20a6343bce88cc2ab7b017, type: 2}
   m_TargetDisplay: 0
@@ -2726,6 +2713,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.8
   lookSmooth: 3
+  useBoneRotation: 1
 --- !u!1 &1435017504
 GameObject:
   m_ObjectHideFlags: 0
@@ -2739,7 +2727,7 @@ GameObject:
   - component: {fileID: 1435017506}
   - component: {fileID: 1435017508}
   m_Layer: 0
-  m_Name: Cam_P3
+  m_Name: Cam_P5
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2843,9 +2831,9 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: a812724d5b20a6343bce88cc2ab7b017, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: d466c39184242b04ab16019893cdd5e8, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -2873,6 +2861,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 2.8
   lookSmooth: 3
+  useBoneRotation: 0
 --- !u!1 &1650258537
 GameObject:
   m_ObjectHideFlags: 0
@@ -2975,7 +2964,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 0949e0be497547242ac8283f5ea61a7a, type: 2}
   m_TargetDisplay: 0
@@ -3020,6 +3009,7 @@ MonoBehaviour:
   targetSmooth: 6
   positionSmooth: 3
   lookSmooth: 3
+  useBoneRotation: 1
 --- !u!1 &2086718085
 GameObject:
   m_ObjectHideFlags: 0
@@ -3032,8 +3022,8 @@ GameObject:
   - component: {fileID: 2086718088}
   - component: {fileID: 2086718086}
   - component: {fileID: 2086718087}
-  m_Layer: 0
-  m_Name: Screen_P3
+  m_Layer: 3
+  m_Name: Screen_P8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3064,7 +3054,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ad27aea6b6ab0a24ea6780763c5d5413, type: 2}
+  - {fileID: 2100000, guid: 6142c88b403463f4ca918c2d26cb2197, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3186,13 +3176,10 @@ MonoBehaviour:
   defaultFadeOutTime: 0.6
   defaultMoveSpeed: 1.5
   normalScreenScales:
-  - {x: 1.6, y: 0.9, z: 1}
-  - {x: 2, y: 1.125, z: 1}
-  - {x: 1.2, y: 0.675, z: 1}
-  distortedScreenScales:
   - {x: 1, y: 1, z: 1}
-  - {x: 0.8, y: 1.4, z: 1}
-  - {x: 2.2, y: 0.7, z: 1}
+  - {x: 2, y: 2, z: 2}
+  - {x: 3, y: 3, z: 3}
+  distortedScreenScales: []
 --- !u!1 &2136687655
 GameObject:
   m_ObjectHideFlags: 0
@@ -3205,7 +3192,7 @@ GameObject:
   - component: {fileID: 2136687658}
   - component: {fileID: 2136687657}
   - component: {fileID: 2136687656}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Screen_P1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

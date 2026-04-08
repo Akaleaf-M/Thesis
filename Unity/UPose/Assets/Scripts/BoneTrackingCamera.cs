@@ -11,6 +11,8 @@ public class BoneTrackingCamera : MonoBehaviour
     public float positionSmooth = 4f;
     public float lookSmooth = 4f;
 
+    public bool useBoneRotation = false;
+
     private Transform targetBone;
     private Transform avatarRoot;
 
@@ -37,7 +39,12 @@ public class BoneTrackingCamera : MonoBehaviour
             Time.deltaTime * targetSmooth
         );
 
-        Vector3 desiredPosition = smoothedTargetPosition + targetBone.rotation * localOffset;
+        Vector3 desiredPosition;
+
+        if (useBoneRotation)
+            desiredPosition = smoothedTargetPosition + targetBone.rotation * localOffset;
+        else
+            desiredPosition = smoothedTargetPosition + localOffset;
 
         transform.position = Vector3.Lerp(
             transform.position,
@@ -59,6 +66,28 @@ public class BoneTrackingCamera : MonoBehaviour
         targetBone = null;
         initialized = false;
         FindBone();
+    }
+
+    public void ApplyCameraProfile(
+        Vector3 offset,
+        float fov,
+        float newTargetSmooth,
+        float newPositionSmooth,
+        float newLookSmooth,
+        bool newUseBoneRotation
+    )
+    {
+        localOffset = offset;
+        targetSmooth = newTargetSmooth;
+        positionSmooth = newPositionSmooth;
+        lookSmooth = newLookSmooth;
+        useBoneRotation = newUseBoneRotation;
+
+        Camera cam = GetComponent<Camera>();
+        if (cam != null)
+        {
+            cam.fieldOfView = fov;
+        }
     }
 
     void FindBone()

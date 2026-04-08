@@ -14,4 +14,11 @@ public class FragmentProfile
     public float moveSpeed;
 
     public bool useDistortion;
+
+    public Vector3 cameraOffset;
+    public float cameraFOV;
+    public float targetSmooth;
+    public float positionSmooth;
+    public float lookSmooth;
+    public bool useBoneRotation;
 }

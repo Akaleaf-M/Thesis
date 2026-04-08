@@ -19,8 +19,7 @@ public class FragmentController : MonoBehaviour
 
     [Header("Overlap Control")]
     public float minSlotDistance = 1.4f;
-    [Range(0f, 1f)]
-    public float overlapChance = 0.15f;
+    [Range(0f, 1f)] public float overlapChance = 0.15f;
     public int maxPositionTries = 12;
 
     [Header("Bone Pool")]
@@ -76,7 +75,6 @@ public class FragmentController : MonoBehaviour
     {
         int activeCount = GetActiveSlotCount();
 
-        // 先补足最低密度
         if (activeCount < minActiveSlots)
         {
             while (GetActiveSlotCount() < minActiveSlots)
@@ -89,7 +87,6 @@ public class FragmentController : MonoBehaviour
             return;
         }
 
-        // 再在最大密度以内继续补充
         spawnTimer += Time.deltaTime;
 
         if (spawnTimer >= nextSpawnTime && activeCount < maxActiveSlots)
@@ -155,7 +152,6 @@ public class FragmentController : MonoBehaviour
         profile.fadeInTime = Random.Range(fadeInRange.x, fadeInRange.y);
         profile.fadeOutTime = Random.Range(fadeOutRange.x, fadeOutRange.y);
 
-        // 防止淡入淡出总和过大
         float maxAllowedFade = profile.lifeTime * 0.45f;
         profile.fadeInTime = Mathf.Min(profile.fadeInTime, maxAllowedFade);
         profile.fadeOutTime = Mathf.Min(profile.fadeOutTime, maxAllowedFade);
@@ -163,7 +159,179 @@ public class FragmentController : MonoBehaviour
         profile.moveSpeed = Random.Range(moveSpeedRange.x, moveSpeedRange.y);
         profile.useDistortion = Random.value < distortionChance;
 
+        ApplyShotProfile(profile);
+
         return profile;
+    }
+
+    void ApplyShotProfile(FragmentProfile profile)
+    {
+        if (profile == null) return;
+
+        string bone = profile.boneName;
+        int variant = Random.Range(0, 5);
+
+        // 默认值
+        profile.cameraOffset = new Vector3(0f, 0f, -2f);
+        profile.cameraFOV = Random.Range(30f, 38f);
+        profile.targetSmooth = 6f;
+        profile.positionSmooth = 4f;
+        profile.lookSmooth = 4f;
+        profile.useBoneRotation = false;
+
+        if (bone == "mixamorig:Hips")
+        {
+            if (variant == 0)
+            {
+                profile.cameraOffset = new Vector3(-1.0f, 0.1f, -1.8f);
+                profile.cameraFOV = Random.Range(30f, 36f);
+            }
+            else if (variant == 1)
+            {
+                profile.cameraOffset = new Vector3(1.0f, 0.1f, -1.8f);
+                profile.cameraFOV = Random.Range(30f, 36f);
+            }
+            else if (variant == 2)
+            {
+                profile.cameraOffset = new Vector3(0.2f, 0.8f, -1.6f);
+                profile.cameraFOV = Random.Range(26f, 32f);
+            }
+            else if (variant == 3)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.1f, -1.4f);
+                profile.cameraFOV = Random.Range(28f, 34f);
+            }
+            else
+            {
+                profile.cameraOffset = new Vector3(-0.6f, 0.5f, -2.1f);
+                profile.cameraFOV = Random.Range(32f, 40f);
+            }
+        }
+        else if (bone == "mixamorig:Spine" || bone == "mixamorig:Spine2")
+        {
+            if (variant == 0)
+            {
+                profile.cameraOffset = new Vector3(-0.9f, 0.15f, -1.6f);
+                profile.cameraFOV = Random.Range(30f, 36f);
+            }
+            else if (variant == 1)
+            {
+                profile.cameraOffset = new Vector3(0.9f, 0.15f, -1.6f);
+                profile.cameraFOV = Random.Range(30f, 36f);
+            }
+            else if (variant == 2)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.8f, -1.7f);
+                profile.cameraFOV = Random.Range(24f, 30f);
+            }
+            else if (variant == 3)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.05f, -1.2f);
+                profile.cameraFOV = Random.Range(26f, 32f);
+            }
+            else
+            {
+                profile.cameraOffset = new Vector3(-0.3f, 0.3f, -2.3f);
+                profile.cameraFOV = Random.Range(34f, 42f);
+            }
+        }
+        else if (bone == "mixamorig:Head")
+        {
+            if (variant == 0)
+            {
+                profile.cameraOffset = new Vector3(-0.5f, 0.2f, -1.2f);
+                profile.cameraFOV = Random.Range(24f, 30f);
+            }
+            else if (variant == 1)
+            {
+                profile.cameraOffset = new Vector3(0.5f, 0.2f, -1.2f);
+                profile.cameraFOV = Random.Range(24f, 30f);
+            }
+            else if (variant == 2)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.7f, -1.3f);
+                profile.cameraFOV = Random.Range(22f, 28f);
+            }
+            else if (variant == 3)
+            {
+                profile.cameraOffset = new Vector3(-0.2f, 0.1f, -1.6f);
+                profile.cameraFOV = Random.Range(30f, 38f);
+            }
+            else
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.0f, -0.9f);
+                profile.cameraFOV = Random.Range(20f, 26f);
+            }
+        }
+        else if (bone == "mixamorig:LeftArm" || bone == "mixamorig:RightArm")
+        {
+            if (variant == 0)
+            {
+                profile.cameraOffset = new Vector3(-0.6f, 0.2f, -1.4f);
+                profile.cameraFOV = Random.Range(32f, 40f);
+            }
+            else if (variant == 1)
+            {
+                profile.cameraOffset = new Vector3(0.6f, 0.2f, -1.4f);
+                profile.cameraFOV = Random.Range(32f, 40f);
+            }
+            else if (variant == 2)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.5f, -1.5f);
+                profile.cameraFOV = Random.Range(28f, 36f);
+            }
+            else if (variant == 3)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.1f, -1.1f);
+                profile.cameraFOV = Random.Range(36f, 46f);
+            }
+            else
+            {
+                profile.cameraOffset = new Vector3(-0.2f, 0.4f, -1.9f);
+                profile.cameraFOV = Random.Range(38f, 48f);
+            }
+
+            profile.targetSmooth = 5f;
+            profile.positionSmooth = 3.5f;
+            profile.lookSmooth = 3.5f;
+            profile.useBoneRotation = false;
+        }
+        else if (
+            bone == "mixamorig:LeftForeArm" || bone == "mixamorig:RightForeArm" ||
+            bone == "mixamorig:LeftHand" || bone == "mixamorig:RightHand"
+        )
+        {
+            if (variant == 0)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.0f, -1.0f);
+                profile.cameraFOV = Random.Range(36f, 46f);
+            }
+            else if (variant == 1)
+            {
+                profile.cameraOffset = new Vector3(0.3f, 0.15f, -1.1f);
+                profile.cameraFOV = Random.Range(34f, 42f);
+            }
+            else if (variant == 2)
+            {
+                profile.cameraOffset = new Vector3(-0.3f, 0.25f, -1.2f);
+                profile.cameraFOV = Random.Range(30f, 38f);
+            }
+            else if (variant == 3)
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.4f, -1.3f);
+                profile.cameraFOV = Random.Range(28f, 36f);
+            }
+            else
+            {
+                profile.cameraOffset = new Vector3(0.0f, 0.1f, -0.9f);
+                profile.cameraFOV = Random.Range(40f, 52f);
+            }
+
+            profile.targetSmooth = 4.5f;
+            profile.positionSmooth = 3f;
+            profile.lookSmooth = 3f;
+            profile.useBoneRotation = true;
+        }
     }
 
     string GetWeightedRandomBone()
@@ -205,7 +373,6 @@ public class FragmentController : MonoBehaviour
             }
         }
 
-        // 实在找不到就退而求其次
         return GetRandomPositionInRegion();
     }
 
