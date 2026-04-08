@@ -7,13 +7,13 @@ public class FragmentSlot : MonoBehaviour
     public Camera fragmentCamera;
     public Renderer screenRenderer;
 
-    [Header("Lifecycle")]
-    public float lifeTime = 3f;
-    public float fadeInTime = 0.4f;
-    public float fadeOutTime = 0.6f;
+    [Header("Default Lifecycle")]
+    public float defaultLifeTime = 3f;
+    public float defaultFadeInTime = 0.4f;
+    public float defaultFadeOutTime = 0.6f;
 
-    [Header("Screen Movement")]
-    public float moveSpeed = 1.5f;
+    [Header("Default Screen Movement")]
+    public float defaultMoveSpeed = 1.5f;
 
     [Header("Normal Screen Shapes")]
     public Vector3[] normalScreenScales = new Vector3[]
@@ -31,14 +31,16 @@ public class FragmentSlot : MonoBehaviour
         new Vector3(2.2f, 0.7f, 1f)
     };
 
-    [Range(0f, 1f)]
-    public float distortionChance = 0.2f;
-
     private bool isActive = false;
     private float timer = 0f;
 
     private Vector3 screenStartLocalPos;
     private Vector3 screenTargetLocalPos;
+
+    private float lifeTime;
+    private float fadeInTime;
+    private float fadeOutTime;
+    private float moveSpeed;
 
     private Material runtimeMaterial;
     private Color baseColor;
@@ -88,22 +90,27 @@ public class FragmentSlot : MonoBehaviour
         }
     }
 
-    public void Activate(string boneName, Vector3 localStartPos, Vector3 localTargetPos)
+    public void Activate(FragmentProfile profile)
     {
-        Debug.Log("FragmentSlot Activate called: " + boneName);
+        if (profile == null) return;
 
         if (trackingCamera != null)
         {
-            trackingCamera.SetBone(boneName);
+            trackingCamera.SetBone(profile.boneName);
         }
 
-        screenStartLocalPos = localStartPos;
-        screenTargetLocalPos = localTargetPos;
+        screenStartLocalPos = profile.startPos;
+        screenTargetLocalPos = profile.targetPos;
+
+        lifeTime = profile.lifeTime > 0 ? profile.lifeTime : defaultLifeTime;
+        fadeInTime = profile.fadeInTime > 0 ? profile.fadeInTime : defaultFadeInTime;
+        fadeOutTime = profile.fadeOutTime > 0 ? profile.fadeOutTime : defaultFadeOutTime;
+        moveSpeed = profile.moveSpeed > 0 ? profile.moveSpeed : defaultMoveSpeed;
 
         if (screenRenderer != null)
         {
             screenRenderer.transform.localPosition = screenStartLocalPos;
-            ApplyRandomScreenShape();
+            ApplyRandomScreenShape(profile.useDistortion);
         }
 
         timer = 0f;
@@ -141,33 +148,40 @@ public class FragmentSlot : MonoBehaviour
         runtimeMaterial.color = c;
     }
 
-    private void ApplyRandomScreenShape()
+    private void ApplyRandomScreenShape(bool useDistortion)
     {
         if (screenRenderer == null) return;
 
-        bool useDistorted = Random.value < distortionChance;
         Vector3 chosenScale = Vector3.one;
 
-        if (useDistorted)
+        if (useDistortion)
         {
             if (distortedScreenScales != null && distortedScreenScales.Length > 0)
-           {
-             chosenScale = distortedScreenScales[Random.Range(0, distortedScreenScales.Length)];
-         }
+            {
+                chosenScale = distortedScreenScales[Random.Range(0, distortedScreenScales.Length)];
+            }
         }
         else
         {
-         if (normalScreenScales != null && normalScreenScales.Length > 0)
-         {
-             chosenScale = normalScreenScales[Random.Range(0, normalScreenScales.Length)];
-         }
+            if (normalScreenScales != null && normalScreenScales.Length > 0)
+            {
+                chosenScale = normalScreenScales[Random.Range(0, normalScreenScales.Length)];
+            }
         }
 
-    screenRenderer.transform.localScale = chosenScale;
-}
+        screenRenderer.transform.localScale = chosenScale;
+    }
 
     public bool IsActive()
     {
         return isActive;
+    }
+
+    public Vector3 GetCurrentScreenLocalPosition()
+    {
+    if (screenRenderer != null)
+        return screenRenderer.transform.localPosition;
+
+    return Vector3.zero;
     }
 }
