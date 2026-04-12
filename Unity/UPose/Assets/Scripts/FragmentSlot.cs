@@ -32,6 +32,9 @@ public class FragmentSlot : MonoBehaviour
         new Vector3(2.2f, 0.7f, 1f),
         new Vector3(1.4f, 0.5f, 1f)
     };
+    
+    [Header("Slot Identity")]
+    public int slotIndex = 1;
 
     private bool isActive = false;
     private float timer = 0f;
@@ -185,6 +188,17 @@ public class FragmentSlot : MonoBehaviour
     public bool IsActive()
     {
         return isActive;
+    }
+
+    
+    public Camera GetFragmentCamera()
+    {
+        return fragmentCamera;
+    }
+
+    public BoneTrackingCamera GetTrackingCamera()
+    {
+        return trackingCamera;
     }
 
     public Vector3 GetCurrentScreenLocalPosition()

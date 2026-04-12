@@ -90,6 +90,16 @@ public class BoneTrackingCamera : MonoBehaviour
         }
     }
 
+    public Transform GetTargetBone()
+    {
+        return targetBone;
+    }
+
+    public string GetCurrentBoneName()
+    {
+        return boneName;
+    }
+
     void FindBone()
     {
         if (avatarRoot == null)
@@ -118,5 +128,21 @@ public class BoneTrackingCamera : MonoBehaviour
                 return result;
         }
         return null;
+    }
+
+    public Transform FindBoneByName(string targetName)
+    {
+        if (avatarRoot == null)
+        {
+            GameObject avatarObj = GameObject.Find(avatarRootName);
+            if (avatarObj != null)
+            {
+                avatarRoot = avatarObj.transform;
+            }
+        }
+
+    if (avatarRoot == null) return null;
+
+    return FindChildRecursive(avatarRoot, targetName);
     }
 }
