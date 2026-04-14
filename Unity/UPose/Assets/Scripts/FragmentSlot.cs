@@ -2,102 +2,187 @@ using UnityEngine;
 
 public class FragmentSlot : MonoBehaviour
 {
-    [Header("References")]
-    public BoneTrackingCamera trackingCamera;
-    public Camera fragmentCamera;
-    public Renderer screenRenderer;
-
-    [Header("Default Lifecycle")]
-    public float defaultLifeTime = 3f;
-    public float defaultFadeInTime = 0.4f;
-    public float defaultFadeOutTime = 0.6f;
-
-    [Header("Default Screen Movement")]
-    public float defaultMoveSpeed = 1.5f;
-
-    [Header("Normal Screen Shapes")]
-    public Vector3[] normalScreenScales = new Vector3[]
-    {
-        new Vector3(1.2f, 0.675f, 1f),
-        new Vector3(1.6f, 0.9f, 1f),
-        new Vector3(2.0f, 1.125f, 1f),
-        new Vector3(2.4f, 1.35f, 1f)
-    };
-
-    [Header("Distorted Screen Shapes")]
-    public Vector3[] distortedScreenScales = new Vector3[]
-    {
-        new Vector3(1.0f, 1.0f, 1f),
-        new Vector3(0.9f, 1.5f, 1f),
-        new Vector3(2.2f, 0.7f, 1f),
-        new Vector3(1.4f, 0.5f, 1f)
-    };
-    
     [Header("Slot Identity")]
     public int slotIndex = 1;
 
-    private bool isActive = false;
-    private float timer = 0f;
+    [Header("Core References")]
+    public Camera fragmentCamera;
+    public BoneTrackingCamera trackingCamera;
+    public Renderer screenRenderer;
+    public Transform overlayRoot;
 
-    private Vector3 screenStartLocalPos;
-    private Vector3 screenTargetLocalPos;
+    [Header("Render Texture")]
+    public int renderTextureWidth = 512;
+    public int renderTextureHeight = 512;
+    public int renderTextureDepth = 16;
+    public RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
+    public string screenTextureProperty = "_BaseMap";
 
-    private float lifeTime;
-    private float fadeInTime;
-    private float fadeOutTime;
-    private float moveSpeed;
-
-    private Material runtimeMaterial;
-    private Color baseColor;
-
-    void Start()
+    [Header("Screen Shapes")]
+    public Vector3[] normalScreenScales = new Vector3[]
     {
-        if (screenRenderer != null)
-        {
-            runtimeMaterial = screenRenderer.material;
-            baseColor = runtimeMaterial.color;
-        }
+        new Vector3(1f, 1f, 1f),
+        new Vector3(2f, 2f, 1f),
+        new Vector3(3f, 3f, 1f)
+    };
 
+    public Vector3[] distortedScreenScales = new Vector3[0];
+
+    [Header("Fade")]
+    public float currentAlpha = 0f;
+
+    [Header("Runtime State")]
+    [SerializeField] private bool isActive = false;
+
+    private FragmentProfile currentProfile;
+    private Material runtimeMaterial;
+    private RenderTexture runtimeRT;
+
+    private Vector3 startPos;
+    private Vector3 targetPos;
+    private float timer;
+
+    void Awake()
+    {
+        AutoAssignReferences();
+        InitializeRuntimeResources();
         SetVisible(false);
+        SetAlpha(0f);
+    }
+
+    void OnDestroy()
+    {
+        CleanupRuntimeResources();
     }
 
     void Update()
     {
-        if (!isActive) return;
+        if (!isActive || currentProfile == null) return;
 
         timer += Time.deltaTime;
 
-        if (screenRenderer != null)
-        {
-            screenRenderer.transform.localPosition = Vector3.Lerp(
-                screenRenderer.transform.localPosition,
-                screenTargetLocalPos,
-                Time.deltaTime * moveSpeed
-            );
-        }
+        // move
+        transform.localPosition = Vector3.Lerp(
+            transform.localPosition,
+            targetPos,
+            Time.deltaTime * currentProfile.moveSpeed
+        );
 
+        // fade
         float alpha = 1f;
 
-        if (timer < fadeInTime)
+        if (timer < currentProfile.fadeInTime)
         {
-            alpha = timer / fadeInTime;
+            alpha = Mathf.Clamp01(timer / currentProfile.fadeInTime);
         }
-        else if (timer > lifeTime - fadeOutTime)
+        else if (timer > currentProfile.lifeTime - currentProfile.fadeOutTime)
         {
-            alpha = Mathf.Clamp01((lifeTime - timer) / fadeOutTime);
+            float t = (timer - (currentProfile.lifeTime - currentProfile.fadeOutTime)) / currentProfile.fadeOutTime;
+            alpha = Mathf.Clamp01(1f - t);
         }
 
         SetAlpha(alpha);
 
-        if (timer >= lifeTime)
+        if (timer >= currentProfile.lifeTime)
         {
             Deactivate();
         }
     }
 
+    void AutoAssignReferences()
+    {
+        if (fragmentCamera == null)
+            fragmentCamera = GetComponentInChildren<Camera>(true);
+
+        if (trackingCamera == null)
+            trackingCamera = GetComponentInChildren<BoneTrackingCamera>(true);
+
+        if (screenRenderer == null)
+        {
+            Transform screen = transform.Find("Screen");
+            if (screen != null) screenRenderer = screen.GetComponent<Renderer>();
+            if (screenRenderer == null) screenRenderer = GetComponentInChildren<Renderer>(true);
+        }
+
+        if (overlayRoot == null)
+        {
+            Transform overlay = transform.Find("Overlay");
+            if (overlay != null) overlayRoot = overlay;
+        }
+    }
+
+    void InitializeRuntimeResources()
+    {
+        if (fragmentCamera == null || screenRenderer == null) return;
+
+        CleanupRuntimeResources();
+
+        runtimeRT = new RenderTexture(
+            renderTextureWidth,
+            renderTextureHeight,
+            renderTextureDepth,
+            renderTextureFormat
+        );
+
+        runtimeRT.name = $"RT_Slot_{slotIndex:00}";
+        runtimeRT.Create();
+
+        fragmentCamera.targetTexture = runtimeRT;
+
+        runtimeMaterial = new Material(screenRenderer.sharedMaterial);
+        runtimeMaterial.name = $"MAT_Slot_{slotIndex:00}";
+
+        if (runtimeMaterial.HasProperty(screenTextureProperty))
+        {
+            runtimeMaterial.SetTexture(screenTextureProperty, runtimeRT);
+        }
+        else if (runtimeMaterial.HasProperty("_MainTex"))
+        {
+            runtimeMaterial.SetTexture("_MainTex", runtimeRT);
+        }
+
+        screenRenderer.material = runtimeMaterial;
+    }
+
+    void CleanupRuntimeResources()
+    {
+        if (fragmentCamera != null && fragmentCamera.targetTexture == runtimeRT)
+        {
+            fragmentCamera.targetTexture = null;
+        }
+
+        if (runtimeRT != null)
+        {
+            if (runtimeRT.IsCreated()) runtimeRT.Release();
+            Destroy(runtimeRT);
+            runtimeRT = null;
+        }
+
+        if (runtimeMaterial != null)
+        {
+            Destroy(runtimeMaterial);
+            runtimeMaterial = null;
+        }
+    }
+
+    public void RefreshSlotResources()
+    {
+        InitializeRuntimeResources();
+    }
+
     public void Activate(FragmentProfile profile)
     {
         if (profile == null) return;
+
+        currentProfile = profile;
+        isActive = true;
+        timer = 0f;
+
+        startPos = profile.startPos;
+        targetPos = profile.targetPos;
+        transform.localPosition = startPos;
+
+        ApplyRandomScreenShape(profile.useDistortion);
 
         if (trackingCamera != null)
         {
@@ -112,77 +197,74 @@ public class FragmentSlot : MonoBehaviour
             );
         }
 
-        screenStartLocalPos = profile.startPos;
-        screenTargetLocalPos = profile.targetPos;
-
-        lifeTime = profile.lifeTime > 0 ? profile.lifeTime : defaultLifeTime;
-        fadeInTime = profile.fadeInTime > 0 ? profile.fadeInTime : defaultFadeInTime;
-        fadeOutTime = profile.fadeOutTime > 0 ? profile.fadeOutTime : defaultFadeOutTime;
-        moveSpeed = profile.moveSpeed > 0 ? profile.moveSpeed : defaultMoveSpeed;
-
-        if (screenRenderer != null)
-        {
-            screenRenderer.transform.localPosition = screenStartLocalPos;
-            ApplyRandomScreenShape(profile.useDistortion);
-        }
-
-        timer = 0f;
-        isActive = true;
-
-        SetAlpha(0f);
         SetVisible(true);
+        SetAlpha(0f);
     }
 
     public void Deactivate()
     {
         isActive = false;
+        currentProfile = null;
+        timer = 0f;
         SetVisible(false);
+        SetAlpha(0f);
     }
 
-    private void SetVisible(bool visible)
-    {
-        if (fragmentCamera != null)
-        {
-            fragmentCamera.gameObject.SetActive(visible);
-        }
-
-        if (screenRenderer != null)
-        {
-            screenRenderer.gameObject.SetActive(visible);
-        }
-    }
-
-    private void SetAlpha(float alpha)
-    {
-        if (runtimeMaterial == null) return;
-
-        Color c = baseColor;
-        c.a = alpha;
-        runtimeMaterial.color = c;
-    }
-
-    private void ApplyRandomScreenShape(bool useDistortion)
+    void ApplyRandomScreenShape(bool useDistortion)
     {
         if (screenRenderer == null) return;
 
-        Vector3 chosenScale = Vector3.one;
+        Vector3 chosen = Vector3.one;
 
-        if (useDistortion)
+        if (useDistortion && distortedScreenScales != null && distortedScreenScales.Length > 0)
         {
-            if (distortedScreenScales != null && distortedScreenScales.Length > 0)
-            {
-                chosenScale = distortedScreenScales[Random.Range(0, distortedScreenScales.Length)];
-            }
+            chosen = distortedScreenScales[Random.Range(0, distortedScreenScales.Length)];
         }
-        else
+        else if (normalScreenScales != null && normalScreenScales.Length > 0)
         {
-            if (normalScreenScales != null && normalScreenScales.Length > 0)
-            {
-                chosenScale = normalScreenScales[Random.Range(0, normalScreenScales.Length)];
-            }
+            chosen = normalScreenScales[Random.Range(0, normalScreenScales.Length)];
         }
 
-        screenRenderer.transform.localScale = chosenScale;
+        screenRenderer.transform.localScale = chosen;
+    }
+
+    public void SetVisible(bool visible)
+    {
+        if (screenRenderer != null)
+            screenRenderer.enabled = visible;
+
+        if (fragmentCamera != null)
+            fragmentCamera.enabled = visible;
+
+        if (overlayRoot != null)
+            overlayRoot.gameObject.SetActive(visible);
+    }
+
+    public void SetAlpha(float alpha)
+    {
+        currentAlpha = alpha;
+
+        if (runtimeMaterial != null)
+        {
+            if (runtimeMaterial.HasProperty("_BaseColor"))
+            {
+                Color c = runtimeMaterial.GetColor("_BaseColor");
+                c.a = alpha;
+                runtimeMaterial.SetColor("_BaseColor", c);
+            }
+            else if (runtimeMaterial.HasProperty("_Color"))
+            {
+                Color c = runtimeMaterial.GetColor("_Color");
+                c.a = alpha;
+                runtimeMaterial.SetColor("_Color", c);
+            }
+        }
+
+        if (overlayRoot != null)
+        {
+            CanvasGroup cg = overlayRoot.GetComponent<CanvasGroup>();
+            if (cg != null) cg.alpha = alpha;
+        }
     }
 
     public bool IsActive()
@@ -190,7 +272,14 @@ public class FragmentSlot : MonoBehaviour
         return isActive;
     }
 
-    
+    public Vector3 GetCurrentScreenLocalPosition()
+    {
+        if (screenRenderer != null)
+            return screenRenderer.transform.localPosition;
+
+        return Vector3.zero;
+    }
+
     public Camera GetFragmentCamera()
     {
         return fragmentCamera;
@@ -199,13 +288,5 @@ public class FragmentSlot : MonoBehaviour
     public BoneTrackingCamera GetTrackingCamera()
     {
         return trackingCamera;
-    }
-
-    public Vector3 GetCurrentScreenLocalPosition()
-    {
-    if (screenRenderer != null)
-        return screenRenderer.transform.localPosition;
-
-    return Vector3.zero;
     }
 }

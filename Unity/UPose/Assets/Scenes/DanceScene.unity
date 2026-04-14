@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &93358268
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 93358269}
+  m_Layer: 0
+  m_Name: VocalSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &93358269
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93358268}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -12, y: -3.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 981538048}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &101198846
 GameObject:
   m_ObjectHideFlags: 0
@@ -444,19 +475,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 819255308}
+  slotIndex: 7
   fragmentCamera: {fileID: 819255307}
+  trackingCamera: {fileID: 819255308}
   screenRenderer: {fileID: 373973416}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
   - {x: 3, y: 3, z: 3}
   distortedScreenScales: []
-  slotIndex: 7
+  currentAlpha: 0
+  isActive: 0
 --- !u!4 &175963317
 Transform:
   m_ObjectHideFlags: 0
@@ -520,19 +555,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 1429016574}
+  slotIndex: 3
   fragmentCamera: {fileID: 1429016572}
+  trackingCamera: {fileID: 1429016574}
   screenRenderer: {fileID: 658003237}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
   - {x: 3, y: 3, z: 3}
   distortedScreenScales: []
-  slotIndex: 3
+  currentAlpha: 0
+  isActive: 0
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1061,19 +1100,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 822051888}
+  slotIndex: 8
   fragmentCamera: {fileID: 822051887}
+  trackingCamera: {fileID: 822051888}
   screenRenderer: {fileID: 2086718086}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
   - {x: 3, y: 3, z: 3}
   distortedScreenScales: []
-  slotIndex: 8
+  currentAlpha: 0
+  isActive: 0
 --- !u!4 &451796849
 Transform:
   m_ObjectHideFlags: 0
@@ -1120,19 +1163,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 101198850}
+  slotIndex: 6
   fragmentCamera: {fileID: 101198849}
+  trackingCamera: {fileID: 101198850}
   screenRenderer: {fileID: 1243224182}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
   - {x: 3, y: 3, z: 3}
   distortedScreenScales: []
-  slotIndex: 6
+  currentAlpha: 0
+  isActive: 0
 --- !u!4 &456410828
 Transform:
   m_ObjectHideFlags: 0
@@ -1149,6 +1196,99 @@ Transform:
   - {fileID: 101198847}
   - {fileID: 1243224185}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &537983053
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 537983054}
+  m_Layer: 0
+  m_Name: BeatLane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &537983054
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 537983053}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 981538048}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &560741647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 560741648}
+  m_Layer: 0
+  m_Name: BeatSpwanPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &560741648
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560741647}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 12, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 981538048}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &566316183
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 566316184}
+  m_Layer: 0
+  m_Name: VocalLane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &566316184
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566316183}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 981538048}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &650510857
 GameObject:
@@ -1960,6 +2100,74 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BufferSize: 101
+--- !u!1 &981538046
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 981538048}
+  - component: {fileID: 981538047}
+  m_Layer: 0
+  m_Name: BackgroundRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &981538047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981538046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75adbe8e57e41b340944c4a2c29469bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BackgroundStreamController
+  tokenPrefab: {fileID: 652933647693811844, guid: af3005c3ab629ce4ca8907a2c13b8d12, type: 3}
+  beatLane: {fileID: 537983054}
+  vocalLane: {fileID: 566316184}
+  beatSpawnPoint: {fileID: 560741648}
+  vocalSpawnPoint: {fileID: 93358269}
+  beatIntervalRange: {x: 0.12, y: 0.35}
+  vocalIntervalRange: {x: 0.25, y: 0.7}
+  beatYJitter: 1.8
+  vocalYJitter: 1.8
+  beatSpeed: 15
+  vocalSpeed: 15
+  destroyXMin: -14
+  destroyXMax: 14
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  accentColor: {r: 0, g: 1, b: 0, a: 1}
+  accentChance: 0.12
+  beatTokenLengthRange: {x: 3, y: 8}
+  vocalTokenLengthRange: {x: 3, y: 8}
+  beatScaleRange: {x: 0.9, y: 1.3}
+  vocalScaleRange: {x: 0.9, y: 1.4}
+--- !u!4 &981538048
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981538046}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 537983054}
+  - {fileID: 566316184}
+  - {fileID: 560741648}
+  - {fileID: 93358269}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &992788407
 GameObject:
   m_ObjectHideFlags: 0
@@ -2038,19 +2246,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 140203916}
+  slotIndex: 4
   fragmentCamera: {fileID: 140203915}
+  trackingCamera: {fileID: 140203916}
   screenRenderer: {fileID: 1338753621}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
   - {x: 3, y: 3, z: 3}
   distortedScreenScales: []
-  slotIndex: 4
+  currentAlpha: 0
+  isActive: 0
 --- !u!4 &1029905885
 Transform:
   m_ObjectHideFlags: 0
@@ -2372,8 +2584,8 @@ Camera:
   m_GameObject: {fileID: 1148717907}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -2423,7 +2635,7 @@ Transform:
   m_GameObject: {fileID: 1148717907}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -3}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2458,13 +2670,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 1435017508}
+  slotIndex: 5
   fragmentCamera: {fileID: 1435017507}
+  trackingCamera: {fileID: 1435017508}
   screenRenderer: {fileID: 1133127106}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
@@ -2473,7 +2688,8 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
-  slotIndex: 5
+  currentAlpha: 0
+  isActive: 0
 --- !u!4 &1224844597
 Transform:
   m_ObjectHideFlags: 0
@@ -2985,19 +3201,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 330585548}
+  slotIndex: 1
   fragmentCamera: {fileID: 330585545}
+  trackingCamera: {fileID: 330585548}
   screenRenderer: {fileID: 2136687657}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 1}
   - {x: 3, y: 3, z: 1}
   distortedScreenScales: []
-  slotIndex: 1
+  currentAlpha: 0
+  isActive: 0
 --- !u!1 &1429016569
 GameObject:
   m_ObjectHideFlags: 0
@@ -4038,7 +4258,7 @@ Transform:
   m_GameObject: {fileID: 1796132563}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4046,8 +4266,8 @@ Transform:
   - {fileID: 1562844211}
   - {fileID: 2076923180}
   - {fileID: 1691911407}
-  - {fileID: 2041672934}
   - {fileID: 1637904271}
+  - {fileID: 2041672934}
   m_Father: {fileID: 2136687659}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1975793706
@@ -4188,7 +4408,7 @@ Transform:
   m_GameObject: {fileID: 2041672933}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4501,19 +4721,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
-  trackingCamera: {fileID: 1650258542}
+  slotIndex: 2
   fragmentCamera: {fileID: 1650258540}
+  trackingCamera: {fileID: 1650258542}
   screenRenderer: {fileID: 1146656185}
-  defaultLifeTime: 3
-  defaultFadeInTime: 0.4
-  defaultFadeOutTime: 0.6
-  defaultMoveSpeed: 1.5
+  overlayRoot: {fileID: 0}
+  renderTextureWidth: 512
+  renderTextureHeight: 512
+  renderTextureDepth: 16
+  renderTextureFormat: 0
+  screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 2, y: 2, z: 2}
   - {x: 3, y: 3, z: 3}
   distortedScreenScales: []
-  slotIndex: 2
+  currentAlpha: 0
+  isActive: 0
 --- !u!1 &2136687655
 GameObject:
   m_ObjectHideFlags: 0
@@ -4645,3 +4869,4 @@ SceneRoots:
   - {fileID: 175963317}
   - {fileID: 451796849}
   - {fileID: 683087189}
+  - {fileID: 981538048}
