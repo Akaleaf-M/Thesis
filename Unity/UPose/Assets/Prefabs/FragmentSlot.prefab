@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4229917354790291714}
   - component: {fileID: 6280334029884918576}
   m_Layer: 0
-  m_Name: Cam_P1
+  m_Name: Cam
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -215,7 +215,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -327,7 +327,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -382,7 +382,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8265778322553315081}
   m_Layer: 3
-  m_Name: Overlay_P1
+  m_Name: Overlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -422,7 +422,7 @@ GameObject:
   - component: {fileID: 4352496731365444028}
   - component: {fileID: 7588231136422125094}
   m_Layer: 3
-  m_Name: Screen_P1
+  m_Name: Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -589,7 +589,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -950,7 +950,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1062,7 +1062,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1157,7 +1157,7 @@ MonoBehaviour:
   fragmentCamera: {fileID: 3501203651633020939}
   trackingCamera: {fileID: 6280334029884918576}
   screenRenderer: {fileID: 4352496731365444028}
-  overlayRoot: {fileID: 0}
+  overlayRoot: {fileID: 8265778322553315081}
   renderTextureWidth: 512
   renderTextureHeight: 512
   renderTextureDepth: 16
@@ -1165,8 +1165,8 @@ MonoBehaviour:
   screenTextureProperty: _BaseMap
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
+  - {x: 1.5, y: 1.5, z: 1}
   - {x: 2, y: 2, z: 1}
-  - {x: 3, y: 3, z: 1}
   distortedScreenScales: []
   currentAlpha: 0
   isActive: 0
@@ -1222,9 +1222,11 @@ MonoBehaviour:
   decimalPlaces: 2
   markerHexColor: '#00ff00'
   markerSymbol: "\u25A0"
-  useScreenLocalPosition: 1
+  textHexColor: '#FFFFFF'
   anchorOffset: {x: 0.03, y: -0.02, z: 0}
   updateLayoutEveryFrame: 1
+  autoFindFragmentSlot: 1
+  autoFindLabelText: 1
 --- !u!1 &7882248021863160768
 GameObject:
   m_ObjectHideFlags: 0
@@ -1292,7 +1294,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1404,7 +1406,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1516,7 +1518,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4cdebfd543e7a3f4fadd121e56d153b5, type: 2}
+  - {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

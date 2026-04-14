@@ -17,6 +17,12 @@ public class FragmentController : MonoBehaviour
     public Vector2 regionX = new Vector2(-3.5f, 3.5f);
     public Vector2 regionY = new Vector2(-1.8f, 1.8f);
 
+    [Header("Z Layering")]
+    public float baseZ = 0f;
+    public float zStep = 0.03f;
+    public int zLayerCount = 4;
+    [Range(0f, 1f)] public float sameLayerChance = 0.15f;
+
     [Header("Overlap Control")]
     public float minSlotDistance = 1.4f;
     [Range(0f, 1f)] public float overlapChance = 0.15f;
@@ -116,6 +122,7 @@ public class FragmentController : MonoBehaviour
     {
         foreach (FragmentSlot slot in slots)
         {
+            if (slot == null) continue;
             if (!slot.IsActive())
                 return slot;
         }
@@ -127,6 +134,7 @@ public class FragmentController : MonoBehaviour
         int count = 0;
         foreach (FragmentSlot slot in slots)
         {
+            if (slot == null) continue;
             if (slot.IsActive()) count++;
         }
         return count;
@@ -146,7 +154,7 @@ public class FragmentController : MonoBehaviour
             0f
         );
 
-        profile.targetPos = ClampToRegion(drifted);
+        profile.targetPos = ClampToRegionKeepZ(drifted, profile.startPos.z);
 
         profile.lifeTime = Random.Range(lifeTimeRange.x, lifeTimeRange.y);
         profile.fadeInTime = Random.Range(fadeInRange.x, fadeInRange.y);
@@ -171,7 +179,6 @@ public class FragmentController : MonoBehaviour
         string bone = profile.boneName;
         int variant = Random.Range(0, 5);
 
-        // 默认值
         profile.cameraOffset = new Vector3(0f, 0f, -2f);
         profile.cameraFOV = Random.Range(30f, 38f);
         profile.targetSmooth = 6f;
@@ -340,17 +347,11 @@ public class FragmentController : MonoBehaviour
         float roll = Random.value * total;
 
         if (roll < stableWeight)
-        {
             return GetRandomFromArray(stableBones, "mixamorig:Spine2");
-        }
         else if (roll < stableWeight + mediumWeight)
-        {
             return GetRandomFromArray(mediumBones, "mixamorig:Head");
-        }
         else
-        {
             return GetRandomFromArray(unstableBones, "mixamorig:LeftHand");
-        }
     }
 
     string GetRandomFromArray(string[] arr, string fallback)
@@ -362,48 +363,63 @@ public class FragmentController : MonoBehaviour
     Vector3 GetSpawnPosition()
     {
         bool allowOverlap = Random.value < overlapChance;
+        bool allowSameLayer = Random.value < sameLayerChance;
+
+        float z = GetRandomZLayer();
 
         for (int i = 0; i < maxPositionTries; i++)
         {
-            Vector3 candidate = GetRandomPositionInRegion();
+            Vector3 candidate = GetRandomPositionInRegion(z);
 
-            if (allowOverlap || !IsPositionTooClose(candidate))
-            {
+            if (allowOverlap || !IsPositionTooClose(candidate, allowSameLayer))
                 return candidate;
-            }
         }
 
-        return GetRandomPositionInRegion();
+        return GetRandomPositionInRegion(z);
     }
 
-    Vector3 GetRandomPositionInRegion()
+    float GetRandomZLayer()
+    {
+        int layer = Random.Range(0, Mathf.Max(1, zLayerCount));
+        return baseZ + layer * zStep;
+    }
+
+    Vector3 GetRandomPositionInRegion(float z)
     {
         return new Vector3(
             Random.Range(regionX.x, regionX.y),
             Random.Range(regionY.x, regionY.y),
-            0f
+            z
         );
     }
 
-    Vector3 ClampToRegion(Vector3 pos)
+    Vector3 ClampToRegionKeepZ(Vector3 pos, float z)
     {
         pos.x = Mathf.Clamp(pos.x, regionX.x, regionX.y);
         pos.y = Mathf.Clamp(pos.y, regionY.x, regionY.y);
-        pos.z = 0f;
+        pos.z = z;
         return pos;
     }
 
-    bool IsPositionTooClose(Vector3 candidate)
+    bool IsPositionTooClose(Vector3 candidate, bool allowSameLayer)
     {
         foreach (FragmentSlot slot in slots)
         {
-            if (!slot.IsActive()) continue;
+            if (slot == null || !slot.IsActive()) continue;
 
-            Vector3 existing = slot.GetCurrentScreenLocalPosition();
-            if (Vector3.Distance(candidate, existing) < minSlotDistance)
+            Vector3 existing = slot.transform.localPosition;
+
+            if (!allowSameLayer)
             {
-                return true;
+                if (Mathf.Abs(existing.z - candidate.z) > zStep * 0.5f)
+                    continue;
             }
+
+            Vector2 a = new Vector2(existing.x, existing.y);
+            Vector2 b = new Vector2(candidate.x, candidate.y);
+
+            if (Vector2.Distance(a, b) < minSlotDistance)
+                return true;
         }
 
         return false;

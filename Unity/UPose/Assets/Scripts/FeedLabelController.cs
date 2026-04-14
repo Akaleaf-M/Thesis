@@ -13,32 +13,58 @@ public class FeedLabelController : MonoBehaviour
     public int decimalPlaces = 2;
 
     [Header("Marker Style")]
-    public string markerHexColor = "#A6FF00";
+    public string markerHexColor = "#00FF00";
     public string markerSymbol = "■";
 
-    [Header("Data Source")]
-    public bool useScreenLocalPosition = true;
+    [Header("Text Style")]
+    public string textHexColor = "#FFFFFF";
 
     [Header("Layout")]
     public Vector3 anchorOffset = new Vector3(-0.42f, 0.40f, 0.001f);
 
     [Header("Behavior")]
     public bool updateLayoutEveryFrame = false;
+    public bool autoFindFragmentSlot = true;
+    public bool autoFindLabelText = true;
+
+    void Awake()
+    {
+        ResolveReferences();
+    }
 
     void Start()
     {
+        ResolveReferences();
         ApplyLayout();
         UpdateLabel();
     }
 
     void LateUpdate()
     {
+        if (autoFindFragmentSlot && (fragmentSlot == null || !fragmentSlot.gameObject.scene.IsValid()))
+        {
+            ResolveReferences();
+        }
+
         if (updateLayoutEveryFrame)
         {
             ApplyLayout();
         }
 
         UpdateLabel();
+    }
+
+    void ResolveReferences()
+    {
+        if (autoFindFragmentSlot)
+        {
+            fragmentSlot = GetComponentInParent<FragmentSlot>();
+        }
+
+        if (autoFindLabelText && labelText == null)
+        {
+            labelText = GetComponentInChildren<TextMeshPro>(true);
+        }
     }
 
     void ApplyLayout()
@@ -51,23 +77,20 @@ public class FeedLabelController : MonoBehaviour
         if (fragmentSlot == null || labelText == null) return;
 
         int index = fragmentSlot.slotIndex;
+        Vector3 pos = fragmentSlot.transform.localPosition;
 
         string marker = $"<color={markerHexColor}>{markerSymbol}</color>";
-        string line1 = $"{marker} {labelPrefix}_{index:00}";
+        string head = $"<color={textHexColor}>{labelPrefix}_{index:00}</color>";
 
         if (!showCoordinates)
         {
-            labelText.text = line1;
+            labelText.text = $"{marker} {head}";
             return;
         }
 
-        Vector3 pos = useScreenLocalPosition
-            ? fragmentSlot.GetCurrentScreenLocalPosition()
-            : fragmentSlot.transform.localPosition;
-
         string format = "F" + decimalPlaces;
-        string line2 = $"X:{pos.x.ToString(format)} Y:{pos.y.ToString(format)}";
+        string coords = $"<color={textHexColor}>X:{pos.x.ToString(format)} Y:{pos.y.ToString(format)}</color>";
 
-        labelText.text = line1 + "\n" + line2;
+        labelText.text = $"{marker} {head}\n{coords}";
     }
 }
