@@ -1462,7 +1462,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Delay: 0
   onlineAvatar: 0
-  localFilename: X Bot.glb
+  localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
 --- !u!1 &1148717907
