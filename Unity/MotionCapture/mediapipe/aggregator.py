@@ -2,21 +2,16 @@
 import socket
 import time
 import math
-from collections import defaultdict
 
 # ---- config ----
-IN_PORTS = [52733, 52734, 52735, 52736]   # your per-camera ports
-OUT_ADDR = ("127.0.0.1", 53000)           # Unity listens here
-STALE_SEC = 0.5                            # drop camera if no packet within this time
-TARGET_HZ = 30                             # send rate cap
+IN_PORTS = [52833, 52834, 52835, 52836]   # aggregator input ports
+OUT_ADDR = ("127.0.0.1", 53000)           # Unity collective listens here
+STALE_SEC = 0.5
+TARGET_HZ = 30
 
-# joints expected: 0..9
 JOINT_COUNT = 10
 
 def parse_mprot(payload: str):
-    """
-    Returns dict[int, (qx,qy,qz,qw,vis)] or None if not mprot.
-    """
     lines = payload.strip().splitlines()
     if not lines or lines[0].strip() != "mprot":
         return None
@@ -48,12 +43,6 @@ def quat_neg(q):
     return (-q[0], -q[1], -q[2], -q[3])
 
 def average_quats(quats):
-    """
-    quats: list[(qx,qy,qz,qw)]
-    Simple, stable average:
-      - align sign to first quat
-      - sum and normalize
-    """
     if not quats:
         return (0.0, 0.0, 0.0, 1.0)
 
@@ -62,14 +51,13 @@ def average_quats(quats):
     for q in quats:
         if quat_dot(q, q_ref) < 0.0:
             q = quat_neg(q)
-        sx += q[0]; sy += q[1]; sz += q[2]; sw += q[3]
+        sx += q[0]
+        sy += q[1]
+        sz += q[2]
+        sw += q[3]
     return quat_normalize((sx, sy, sz, sw))
 
 def build_mprot(joint_map):
-    """
-    joint_map: dict[int, (qx,qy,qz,qw,vis)]
-    Output same mprot format.
-    """
     lines = ["mprot"]
     for j in range(JOINT_COUNT):
         qx, qy, qz, qw, vis = joint_map.get(j, (0.0, 0.0, 0.0, 1.0, 0.0))
@@ -77,7 +65,6 @@ def build_mprot(joint_map):
     return "\n".join(lines) + "\n"
 
 def main():
-    # one UDP socket per input port (simpler than multiplexing)
     in_socks = []
     for p in IN_PORTS:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -89,7 +76,6 @@ def main():
     out_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     print(f"[agg] sending to {OUT_ADDR[0]}:{OUT_ADDR[1]}")
 
-    # latest per-port data
     latest = {}  # port -> (timestamp, joint_dict)
     last_send = 0.0
     min_period = 1.0 / max(1, TARGET_HZ)
@@ -97,7 +83,6 @@ def main():
     while True:
         now = time.time()
 
-        # read all available packets (non-blocking)
         for port, s in in_socks:
             while True:
                 try:
@@ -117,19 +102,15 @@ def main():
                 if joints is not None:
                     latest[port] = (now, joints)
 
-        # cap output rate
         if now - last_send < min_period:
             time.sleep(0.001)
             continue
 
-        # collect active cameras
         active = []
         for port, (ts, joints) in list(latest.items()):
             if now - ts <= STALE_SEC:
                 active.append((port, joints))
-            # else stale: ignore (but keep in dict; not necessary to delete)
 
-        # fuse
         fused = {}
         if active:
             for j in range(JOINT_COUNT):
@@ -141,17 +122,12 @@ def main():
                         quats.append((qx, qy, qz, qw))
                         vises.append(vis)
                 q_avg = average_quats(quats)
-                vis_avg = sum(vises)/len(vises) if vises else 0.0
+                vis_avg = sum(vises) / len(vises) if vises else 0.0
                 fused[j] = (*q_avg, vis_avg)
 
         payload = build_mprot(fused)
         out_sock.sendto(payload.encode("utf-8"), OUT_ADDR)
         last_send = now
-
-        # lightweight status print every ~1s
-        # (optional; comment out if noisy)
-        # if int(now) % 1 == 0:
-        #     print(f"[agg] active cams: {len(active)}")
 
 if __name__ == "__main__":
     main()

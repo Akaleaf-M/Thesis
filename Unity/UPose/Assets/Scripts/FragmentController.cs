@@ -2,29 +2,42 @@ using UnityEngine;
 
 public class FragmentController : MonoBehaviour
 {
-    [Header("Fragment Slots")]
-    public FragmentSlot[] slots;
+    [Header("Fixed Solo Slots (P1-P4)")]
+    public FragmentSlot[] fixedSoloSlots; // assign FragmentSlot_P1 ~ P4 in inspector
 
-    [Header("Density Control")]
-    public int minActiveSlots = 6;
-    public int maxActiveSlots = 8;
+    [Header("Random Collective Slots")]
+    public FragmentSlot[] randomCollectiveSlots; // assign the remaining collective slots
 
-    [Header("Spawn Timing")]
+    [Header("Fixed Solo Corner Positions")]
+    public Vector3 topLeftPos = new Vector3(-3.2f, 1.6f, 0.12f);
+    public Vector3 topRightPos = new Vector3(3.2f, 1.6f, 0.12f);
+    public Vector3 bottomLeftPos = new Vector3(-3.2f, -1.6f, 0.12f);
+    public Vector3 bottomRightPos = new Vector3(3.2f, -1.6f, 0.12f);
+
+    [Header("Solo Slot Lifetime")]
+    public bool keepSoloSlotsAlwaysOn = true;
+    public float soloLifeTime = 9999f;
+
+    [Header("Collective Density Control")]
+    public int minActiveCollectiveSlots = 2;
+    public int maxActiveCollectiveSlots = 4;
+
+    [Header("Collective Spawn Timing")]
     public float minSpawnInterval = 0.2f;
     public float maxSpawnInterval = 0.6f;
 
-    [Header("Main Wall Region")]
-    public Vector2 regionX = new Vector2(-3.5f, 3.5f);
-    public Vector2 regionY = new Vector2(-1.8f, 1.8f);
+    [Header("Collective Region")]
+    public Vector2 regionX = new Vector2(-2.5f, 2.5f);
+    public Vector2 regionY = new Vector2(-1.2f, 1.2f);
 
-    [Header("Z Layering")]
+    [Header("Collective Z Layering")]
     public float baseZ = 0f;
     public float zStep = 0.03f;
     public int zLayerCount = 4;
     [Range(0f, 1f)] public float sameLayerChance = 0.15f;
 
-    [Header("Overlap Control")]
-    public float minSlotDistance = 1.4f;
+    [Header("Collective Overlap Control")]
+    public float minSlotDistance = 1.2f;
     [Range(0f, 1f)] public float overlapChance = 0.15f;
     public int maxPositionTries = 12;
 
@@ -66,26 +79,28 @@ public class FragmentController : MonoBehaviour
     public Vector2 fadeOutRange = new Vector2(0.4f, 0.8f);
     public Vector2 moveSpeedRange = new Vector2(0.8f, 1.6f);
 
-    [Range(0f, 1f)]
-    public float distortionChance = 0.15f;
+    [Range(0f, 1f)] public float distortionChance = 0.15f;
 
     private float spawnTimer = 0f;
     private float nextSpawnTime = 0.5f;
 
     void Start()
     {
+        ActivateFixedSoloSlots();
         ScheduleNextSpawn();
     }
 
     void Update()
     {
-        int activeCount = GetActiveSlotCount();
+        MaintainSoloSlots();
 
-        if (activeCount < minActiveSlots)
+        int activeCount = GetActiveCollectiveSlotCount();
+
+        if (activeCount < minActiveCollectiveSlots)
         {
-            while (GetActiveSlotCount() < minActiveSlots)
+            while (GetActiveCollectiveSlotCount() < minActiveCollectiveSlots)
             {
-                if (!TrySpawnFragment()) break;
+                if (!TrySpawnCollectiveFragment()) break;
             }
 
             spawnTimer = 0f;
@@ -95,12 +110,80 @@ public class FragmentController : MonoBehaviour
 
         spawnTimer += Time.deltaTime;
 
-        if (spawnTimer >= nextSpawnTime && activeCount < maxActiveSlots)
+        if (spawnTimer >= nextSpawnTime && activeCount < maxActiveCollectiveSlots)
         {
-            TrySpawnFragment();
+            TrySpawnCollectiveFragment();
             spawnTimer = 0f;
             ScheduleNextSpawn();
         }
+    }
+
+    void ActivateFixedSoloSlots()
+    {
+        if (fixedSoloSlots == null || fixedSoloSlots.Length == 0) return;
+
+        Vector3[] positions = new Vector3[]
+        {
+            topLeftPos,
+            topRightPos,
+            bottomLeftPos,
+            bottomRightPos
+        };
+
+        for (int s = 0; s < fixedSoloSlots.Length && s < 4; s++)
+        {
+            FragmentSlot slot = fixedSoloSlots[s];
+            if (slot == null) continue;
+
+            FragmentProfile profile = GenerateFixedSoloProfile(s, positions[s]);
+            slot.Activate(profile);
+        }
+    }
+
+    void MaintainSoloSlots()
+    {
+        if (!keepSoloSlotsAlwaysOn || fixedSoloSlots == null) return;
+
+        Vector3[] positions = new Vector3[]
+        {
+            topLeftPos,
+            topRightPos,
+            bottomLeftPos,
+            bottomRightPos
+        };
+
+        for (int s = 0; s < fixedSoloSlots.Length && s < 4; s++)
+        {
+            FragmentSlot slot = fixedSoloSlots[s];
+            if (slot == null) continue;
+
+            if (!slot.IsActive())
+            {
+                FragmentProfile profile = GenerateFixedSoloProfile(s, positions[s]);
+                slot.Activate(profile);
+            }
+        }
+    }
+
+    FragmentProfile GenerateFixedSoloProfile(int soloIdx, Vector3 fixedPos)
+    {
+        FragmentProfile profile = new FragmentProfile();
+
+        profile.sourceType = FragmentSourceType.Solo;
+        profile.soloIndex = soloIdx + 1; // P1..P4
+
+        profile.boneName = GetWeightedRandomBone();
+        profile.startPos = fixedPos;
+        profile.targetPos = fixedPos;
+
+        profile.lifeTime = keepSoloSlotsAlwaysOn ? soloLifeTime : 8f;
+        profile.fadeInTime = 0.2f;
+        profile.fadeOutTime = 0.2f;
+        profile.moveSpeed = 0f;
+        profile.useDistortion = false;
+
+        ApplyShotProfile(profile);
+        return profile;
     }
 
     void ScheduleNextSpawn()
@@ -108,19 +191,19 @@ public class FragmentController : MonoBehaviour
         nextSpawnTime = Random.Range(minSpawnInterval, maxSpawnInterval);
     }
 
-    bool TrySpawnFragment()
+    bool TrySpawnCollectiveFragment()
     {
-        FragmentSlot freeSlot = GetFreeSlot();
+        FragmentSlot freeSlot = GetFreeCollectiveSlot();
         if (freeSlot == null) return false;
 
-        FragmentProfile profile = GenerateRandomProfile();
+        FragmentProfile profile = GenerateRandomCollectiveProfile();
         freeSlot.Activate(profile);
         return true;
     }
 
-    FragmentSlot GetFreeSlot()
+    FragmentSlot GetFreeCollectiveSlot()
     {
-        foreach (FragmentSlot slot in slots)
+        foreach (FragmentSlot slot in randomCollectiveSlots)
         {
             if (slot == null) continue;
             if (!slot.IsActive())
@@ -129,10 +212,10 @@ public class FragmentController : MonoBehaviour
         return null;
     }
 
-    int GetActiveSlotCount()
+    int GetActiveCollectiveSlotCount()
     {
         int count = 0;
-        foreach (FragmentSlot slot in slots)
+        foreach (FragmentSlot slot in randomCollectiveSlots)
         {
             if (slot == null) continue;
             if (slot.IsActive()) count++;
@@ -140,12 +223,14 @@ public class FragmentController : MonoBehaviour
         return count;
     }
 
-    FragmentProfile GenerateRandomProfile()
+    FragmentProfile GenerateRandomCollectiveProfile()
     {
         FragmentProfile profile = new FragmentProfile();
 
-        profile.boneName = GetWeightedRandomBone();
+        profile.sourceType = FragmentSourceType.Collective;
+        profile.soloIndex = -1;
 
+        profile.boneName = GetWeightedRandomBone();
         profile.startPos = GetSpawnPosition();
 
         Vector3 drifted = profile.startPos + new Vector3(
@@ -301,7 +386,6 @@ public class FragmentController : MonoBehaviour
             profile.targetSmooth = 5f;
             profile.positionSmooth = 3.5f;
             profile.lookSmooth = 3.5f;
-            profile.useBoneRotation = false;
         }
         else if (
             bone == "mixamorig:LeftForeArm" || bone == "mixamorig:RightForeArm" ||
@@ -403,7 +487,7 @@ public class FragmentController : MonoBehaviour
 
     bool IsPositionTooClose(Vector3 candidate, bool allowSameLayer)
     {
-        foreach (FragmentSlot slot in slots)
+        foreach (FragmentSlot slot in randomCollectiveSlots)
         {
             if (slot == null || !slot.IsActive()) continue;
 

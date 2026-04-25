@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BoneTrackingCamera : MonoBehaviour
 {
-    public string avatarRootName = "Avatar1";
+    public string avatarRootName = "Avatar_Collective";
     public string boneName = "mixamorig:Head";
 
     public Vector3 localOffset = new Vector3(0f, 0.1f, -1.2f);
