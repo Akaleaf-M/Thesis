@@ -36,4 +36,12 @@ public class FragmentProfile
 
     [Header("Visual")]
     public bool useDistortion = false;
+    public bool useBrownianMotion = false;
+    public float brownianAcceleration = 1.0f;
+    public float brownianMaxSpeed = 0.35f;
+    public float brownianDrag = 0.45f;
+    public float brownianInitialSpeed = 0.12f;
+    public float brownianBounce = 0.65f;
+    public Vector2 brownianRegionX = new Vector2(-2.5f, 2.5f);
+    public Vector2 brownianRegionY = new Vector2(-1.2f, 1.2f);
 }
