@@ -50,6 +50,12 @@ public class ReadyPlayerAvatar : MonoBehaviour
     public bool moveToFloor = false;
     public float floorLevel = -1f;
 
+    [Header("Root Placement")]
+    public bool lockAvatarRootToOrigin = true;
+    public Vector3 avatarRootOffset = Vector3.zero;
+    public bool keepRootAtOrigin = false;
+    public bool debugRootPlacement = false;
+
     private void Start()
     {
         if (serverComponent != null)
@@ -182,6 +188,8 @@ public class ReadyPlayerAvatar : MonoBehaviour
         }
 
         Debug.Log($"[{name}] GLTF file is loaded.");
+
+        ApplyAvatarRootPlacement();
 
         SetLayerRecursively(gameObject, gameObject.layer);
 
@@ -342,6 +350,16 @@ public class ReadyPlayerAvatar : MonoBehaviour
         transform.position = new Vector3(pos.x, pos.y + (floorY - min), pos.z);
     }
 
+    private void ApplyAvatarRootPlacement()
+    {
+        if (!lockAvatarRootToOrigin) return;
+
+        transform.position = avatarRootOffset;
+
+        if (debugRootPlacement)
+            Debug.Log($"[{name}] Avatar root placed at {transform.position}.");
+    }
+
     private void Update()
     {
         if (!AVATAR_LOADED || server == null) return;
@@ -360,6 +378,7 @@ public class ReadyPlayerAvatar : MonoBehaviour
         LeftLeg.localRotation = server.GetRotation(Landmark.LEFT_KNEE, Delay);
         RightLeg.localRotation = server.GetRotation(Landmark.RIGHT_KNEE, Delay);
 
-        if (moveToFloor) MoveToFloor(floorLevel);
+        if (!lockAvatarRootToOrigin && moveToFloor) MoveToFloor(floorLevel);
+        if (keepRootAtOrigin) ApplyAvatarRootPlacement();
     }
 }
