@@ -1,7 +1,7 @@
 # AI Context for Thesis Project
 
 ## Project Identity
-This is Yicheng Liu's MFA thesis installation project at Pratt Institute, Department of Digital Arts.
+This is an MFA thesis installation project at Pratt Institute, Department of Digital Arts.
 
 The project explores a "collective body" generated from multiple audience members' movements in a dark gallery space.
 
