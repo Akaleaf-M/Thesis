@@ -25,6 +25,7 @@ public class UPose : MonoBehaviour, MotionTrackingPose
     private GameObject linePrefab;
     public float multiplier = 10f;
     public float landmarkScale = 1f;
+    public bool showDebugSkeleton = false;
 
     public bool RestrictMotionRange=true;
 
@@ -48,10 +49,10 @@ public class UPose : MonoBehaviour, MotionTrackingPose
         GameObject child = new GameObject("Landmarks");
         child.transform.SetParent(transform);
         child.transform.localPosition = new Vector3(0, -5, 20);
-        child.SetActive(false);
+        child.SetActive(showDebugSkeleton);
         bodyParent = child.transform;
 
-        GameObject linePrefab = new GameObject("linePrefab");
+        linePrefab = new GameObject("linePrefab");
         LineRenderer lineRenderer = linePrefab.AddComponent<LineRenderer>();
         lineRenderer.startWidth = 0.1f;
         lineRenderer.endWidth = 0.1f;
@@ -60,6 +61,8 @@ public class UPose : MonoBehaviour, MotionTrackingPose
         lineRenderer.endColor = Color.cyan;
 
         body = new Body(bodyParent, linePrefab, landmarkScale);
+        Destroy(linePrefab);
+        linePrefab = null;
 
         if (useCSV)
         {

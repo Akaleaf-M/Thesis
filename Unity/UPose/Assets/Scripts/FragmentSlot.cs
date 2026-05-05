@@ -237,7 +237,33 @@ public class FragmentSlot : MonoBehaviour
             fragmentCamera.enabled = visible;
 
         if (overlayRoot != null)
+        {
             overlayRoot.gameObject.SetActive(visible);
+
+            if (visible)
+                RestoreTrackingBoxFrame();
+        }
+    }
+
+    void RestoreTrackingBoxFrame()
+    {
+        Transform trackingBoxFrame = overlayRoot.Find("TrackingBox_Frame");
+        if (trackingBoxFrame == null) return;
+
+        trackingBoxFrame.gameObject.SetActive(true);
+
+        SetChildActive(trackingBoxFrame, "TB_Top");
+        SetChildActive(trackingBoxFrame, "TB_Bottom");
+        SetChildActive(trackingBoxFrame, "TB_Left");
+        SetChildActive(trackingBoxFrame, "TB_Right");
+        SetChildActive(trackingBoxFrame, "TrackLabel");
+    }
+
+    void SetChildActive(Transform parent, string childName)
+    {
+        Transform child = parent.Find(childName);
+        if (child != null)
+            child.gameObject.SetActive(true);
     }
 
     public void SetAlpha(float alpha)

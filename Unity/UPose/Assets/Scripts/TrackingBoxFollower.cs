@@ -43,6 +43,7 @@ public class TrackingBoxFollower : MonoBehaviour
 
     private Vector3 smoothedLocalPos;
     private Vector2 smoothedBoxSize;
+    private bool frameVisible = true;
 
     void LateUpdate()
     {
@@ -75,12 +76,11 @@ public class TrackingBoxFollower : MonoBehaviour
         if (validViewportPoints.Count == 0)
         {
             if (hideWhenBehindCamera)
-                gameObject.SetActive(false);
+                SetFrameVisible(false);
             return;
         }
 
-        if (!gameObject.activeSelf)
-            gameObject.SetActive(true);
+        SetFrameVisible(true);
 
         float minX = validViewportPoints[0].x;
         float maxX = validViewportPoints[0].x;
@@ -168,6 +168,19 @@ public class TrackingBoxFollower : MonoBehaviour
         {
             rightLine.localPosition = new Vector3(halfW, 0f, 0f);
             rightLine.localScale = new Vector3(lineThickness, size.y, 1f);
+        }
+    }
+
+    void SetFrameVisible(bool visible)
+    {
+        if (frameVisible == visible) return;
+
+        frameVisible = visible;
+
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        foreach (Renderer frameRenderer in renderers)
+        {
+            frameRenderer.enabled = visible;
         }
     }
 
