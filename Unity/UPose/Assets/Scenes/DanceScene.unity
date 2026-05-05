@@ -290,6 +290,10 @@ MonoBehaviour:
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
+  lockAvatarRootToOrigin: 1
+  avatarRootOffset: {x: 0, y: 0, z: 0}
+  keepRootAtOrigin: 0
+  debugRootPlacement: 0
 --- !u!4 &99822390
 Transform:
   m_ObjectHideFlags: 0
@@ -668,6 +672,10 @@ MonoBehaviour:
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
+  lockAvatarRootToOrigin: 1
+  avatarRootOffset: {x: 0, y: 0, z: 0}
+  keepRootAtOrigin: 0
+  debugRootPlacement: 0
 --- !u!4 &453095665
 Transform:
   m_ObjectHideFlags: 0
@@ -1102,6 +1110,7 @@ MonoBehaviour:
   port: 52735
   multiplier: 10
   landmarkScale: 1
+  showDebugSkeleton: 0
   RestrictMotionRange: 1
   MMPose: 0
 --- !u!4 &555738066
@@ -1232,6 +1241,7 @@ MonoBehaviour:
   port: 52733
   multiplier: 10
   landmarkScale: 1
+  showDebugSkeleton: 0
   RestrictMotionRange: 1
   MMPose: 0
 --- !u!4 &586106502
@@ -1284,6 +1294,10 @@ MonoBehaviour:
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
+  lockAvatarRootToOrigin: 1
+  avatarRootOffset: {x: 0, y: 0, z: 0}
+  keepRootAtOrigin: 0
+  debugRootPlacement: 0
 --- !u!4 &640144073
 Transform:
   m_ObjectHideFlags: 0
@@ -1351,6 +1365,17 @@ MonoBehaviour:
   - {fileID: 807533423}
   - {fileID: 693888319}
   - {fileID: 689808970}
+  randomizeCollectiveSlotScale: 1
+  collectiveSlotScaleMode: 0
+  collectiveScaleMin: 1
+  collectiveScaleMax: 5
+  animateCollectiveSlotScale: 1
+  collectiveScaleChangeIntervalMin: 2.5
+  collectiveScaleChangeIntervalMax: 5
+  collectiveScaleLerpSpeed: 1.6
+  collectiveUseAspectJitter: 1
+  collectiveAspectJitter: 0.35
+  preserveCollectiveTextureAspectWithCrop: 1
   topLeftPos: {x: -3.2, y: 1.6, z: 0.12}
   topRightPos: {x: 3.2, y: 1.6, z: 0.12}
   bottomLeftPos: {x: -3.2, y: -1.6, z: 0.12}
@@ -1361,7 +1386,7 @@ MonoBehaviour:
   refreshSoloViewsWhileFixed: 1
   soloViewRefreshRange: {x: 5, y: 9}
   staggerSoloRefresh: 1
-  minActiveCollectiveSlots: 4
+  minActiveCollectiveSlots: 1
   maxActiveCollectiveSlots: 6
   minSpawnInterval: 0.2
   maxSpawnInterval: 2
@@ -1777,6 +1802,7 @@ MonoBehaviour:
   port: 52736
   multiplier: 10
   landmarkScale: 1
+  showDebugSkeleton: 0
   RestrictMotionRange: 1
   MMPose: 0
 --- !u!4 &885882844
@@ -1929,6 +1955,7 @@ MonoBehaviour:
   port: 53000
   multiplier: 10
   landmarkScale: 1
+  showDebugSkeleton: 0
   RestrictMotionRange: 1
   MMPose: 0
 --- !u!114 &929797344
@@ -1980,6 +2007,10 @@ MonoBehaviour:
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
+  lockAvatarRootToOrigin: 1
+  avatarRootOffset: {x: 0, y: 0, z: 0}
+  keepRootAtOrigin: 0
+  debugRootPlacement: 0
 --- !u!4 &950658671
 Transform:
   m_ObjectHideFlags: 0
@@ -2113,8 +2144,12 @@ MonoBehaviour:
   Delay: 0
   onlineAvatar: 0
   localFilename: M1.glb
-  moveToFloor: 1
+  moveToFloor: 0
   floorLevel: -1
+  lockAvatarRootToOrigin: 1
+  avatarRootOffset: {x: 0, y: 0, z: -2}
+  keepRootAtOrigin: 0
+  debugRootPlacement: 0
 --- !u!1 &1148717907
 GameObject:
   m_ObjectHideFlags: 0
@@ -2852,6 +2887,7 @@ MonoBehaviour:
   port: 52734
   multiplier: 10
   landmarkScale: 1
+  showDebugSkeleton: 0
   RestrictMotionRange: 1
   MMPose: 0
 --- !u!4 &1813898621

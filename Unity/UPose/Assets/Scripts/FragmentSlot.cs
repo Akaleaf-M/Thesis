@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class FragmentSlot : MonoBehaviour
@@ -18,6 +19,12 @@ public class FragmentSlot : MonoBehaviour
     public RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
     public string screenTextureProperty = "_BaseMap";
 
+    [Header("Texture Crop")]
+    public bool preserveTextureAspectWithCrop = false;
+
+    [Header("Overlay Text")]
+    public bool compensateOverlayTextScale = true;
+
     [Header("Screen Shapes")]
     public Vector3[] normalScreenScales = new Vector3[]
     {
@@ -37,6 +44,12 @@ public class FragmentSlot : MonoBehaviour
     private FragmentProfile currentProfile;
     private Material runtimeMaterial;
     private RenderTexture runtimeRT;
+    private string activeTextureProperty;
+    private Vector2 baseTextureScale = Vector2.one;
+    private Vector2 baseTextureOffset = Vector2.zero;
+    private Vector3 baseScreenLocalScale = Vector3.one;
+    private TextMeshPro[] overlayTexts;
+    private Vector3[] overlayTextBaseScales;
 
     private Vector3 startPos;
     private Vector3 targetPos;
@@ -45,6 +58,7 @@ public class FragmentSlot : MonoBehaviour
     void Awake()
     {
         AutoAssignReferences();
+        CacheOverlayTextScales();
         InitializeRuntimeResources();
         SetVisible(false);
         SetAlpha(0f);
@@ -109,6 +123,9 @@ public class FragmentSlot : MonoBehaviour
             Transform overlay = transform.Find("Overlay");
             if (overlay != null) overlayRoot = overlay;
         }
+
+        if (screenRenderer != null)
+            baseScreenLocalScale = screenRenderer.transform.localScale;
     }
 
     void InitializeRuntimeResources()
@@ -135,11 +152,16 @@ public class FragmentSlot : MonoBehaviour
         if (runtimeMaterial.HasProperty(screenTextureProperty))
         {
             runtimeMaterial.SetTexture(screenTextureProperty, runtimeRT);
+            activeTextureProperty = screenTextureProperty;
         }
         else if (runtimeMaterial.HasProperty("_MainTex"))
         {
             runtimeMaterial.SetTexture("_MainTex", runtimeRT);
+            activeTextureProperty = "_MainTex";
         }
+
+        CacheBaseTextureTransform();
+        ApplyTextureCropForCurrentScreenScale();
 
         screenRenderer.material = runtimeMaterial;
     }
@@ -163,6 +185,8 @@ public class FragmentSlot : MonoBehaviour
             Destroy(runtimeMaterial);
             runtimeMaterial = null;
         }
+
+        activeTextureProperty = null;
     }
 
     public void RefreshSlotResources()
@@ -182,7 +206,7 @@ public class FragmentSlot : MonoBehaviour
         targetPos = profile.targetPos;
         transform.localPosition = startPos;
 
-        ApplyRandomScreenShape(profile.useDistortion);
+        ApplyProfileScreenScale(profile);
 
         if (trackingCamera != null)
         {
@@ -210,7 +234,147 @@ public class FragmentSlot : MonoBehaviour
         SetAlpha(0f);
     }
 
-    void ApplyRandomScreenShape(bool useDistortion)
+    void ApplyProfileScreenScale(FragmentProfile profile)
+    {
+        if (profile == null || screenRenderer == null) return;
+
+        if (profile.overrideScreenScale)
+        {
+            ApplyScreenScale(profile.screenScale);
+            return;
+        }
+
+        if (profile.randomizeScreenScale)
+            ApplyRandomScreenShape(profile.useDistortion);
+    }
+
+    public void ApplyScreenScale(Vector3 scale)
+    {
+        if (screenRenderer == null) return;
+
+        scale.x = Mathf.Max(0.01f, scale.x);
+        scale.y = Mathf.Max(0.01f, scale.y);
+        scale.z = Mathf.Max(0.01f, scale.z);
+
+        screenRenderer.transform.localScale = scale;
+        ApplyTextureCropForCurrentScreenScale();
+        ApplyOverlayTextScaleCompensation();
+    }
+
+    public void SetScreenScale(Vector3 scale)
+    {
+        ApplyScreenScale(scale);
+    }
+
+    public Vector3 GetScreenScale()
+    {
+        return GetCurrentScreenLocalScale();
+    }
+
+    public void SetTextureAspectCropEnabled(bool enabled)
+    {
+        preserveTextureAspectWithCrop = enabled;
+        ApplyTextureCropForCurrentScreenScale();
+    }
+
+    void CacheOverlayTextScales()
+    {
+        if (overlayRoot == null) return;
+
+        overlayTexts = overlayRoot.GetComponentsInChildren<TextMeshPro>(true);
+        overlayTextBaseScales = new Vector3[overlayTexts.Length];
+
+        for (int i = 0; i < overlayTexts.Length; i++)
+        {
+            overlayTextBaseScales[i] = overlayTexts[i] != null ? overlayTexts[i].transform.localScale : Vector3.one;
+        }
+    }
+
+    void ApplyOverlayTextScaleCompensation()
+    {
+        if (overlayTexts == null || overlayTextBaseScales == null) return;
+        if (screenRenderer == null) return;
+
+        if (!compensateOverlayTextScale)
+        {
+            RestoreOverlayTextBaseScales();
+            return;
+        }
+
+        Vector3 currentScale = screenRenderer.transform.localScale;
+        Vector3 compensation = new Vector3(
+            SafeScaleRatio(baseScreenLocalScale.x, currentScale.x),
+            SafeScaleRatio(baseScreenLocalScale.y, currentScale.y),
+            SafeScaleRatio(baseScreenLocalScale.z, currentScale.z)
+        );
+
+        for (int i = 0; i < overlayTexts.Length && i < overlayTextBaseScales.Length; i++)
+        {
+            if (overlayTexts[i] == null) continue;
+            overlayTexts[i].transform.localScale = Vector3.Scale(overlayTextBaseScales[i], compensation);
+        }
+    }
+
+    void RestoreOverlayTextBaseScales()
+    {
+        for (int i = 0; i < overlayTexts.Length && i < overlayTextBaseScales.Length; i++)
+        {
+            if (overlayTexts[i] == null) continue;
+            overlayTexts[i].transform.localScale = overlayTextBaseScales[i];
+        }
+    }
+
+    float SafeScaleRatio(float baseValue, float currentValue)
+    {
+        if (Mathf.Abs(currentValue) < 0.0001f) return 1f;
+        return baseValue / currentValue;
+    }
+
+    void CacheBaseTextureTransform()
+    {
+        if (runtimeMaterial == null || string.IsNullOrEmpty(activeTextureProperty)) return;
+
+        baseTextureScale = runtimeMaterial.GetTextureScale(activeTextureProperty);
+        baseTextureOffset = runtimeMaterial.GetTextureOffset(activeTextureProperty);
+    }
+
+    void ApplyTextureCropForCurrentScreenScale()
+    {
+        if (runtimeMaterial == null || runtimeRT == null || string.IsNullOrEmpty(activeTextureProperty)) return;
+
+        if (!preserveTextureAspectWithCrop)
+        {
+            runtimeMaterial.SetTextureScale(activeTextureProperty, baseTextureScale);
+            runtimeMaterial.SetTextureOffset(activeTextureProperty, baseTextureOffset);
+            return;
+        }
+
+        Vector3 screenScale = GetCurrentScreenLocalScale();
+        float screenAspect = Mathf.Abs(screenScale.x) / Mathf.Max(0.01f, Mathf.Abs(screenScale.y));
+        float textureAspect = runtimeRT.width / Mathf.Max(1f, (float)runtimeRT.height);
+        float uvAspect = screenAspect / Mathf.Max(0.01f, textureAspect);
+
+        Vector2 cropScale = Vector2.one;
+
+        if (uvAspect > 1f)
+        {
+            cropScale.y = 1f / uvAspect;
+        }
+        else
+        {
+            cropScale.x = uvAspect;
+        }
+
+        Vector2 cropOffset = new Vector2(
+            (1f - cropScale.x) * 0.5f,
+            (1f - cropScale.y) * 0.5f
+        );
+
+        runtimeMaterial.SetTextureScale(activeTextureProperty, Vector2.Scale(baseTextureScale, cropScale));
+        runtimeMaterial.SetTextureOffset(activeTextureProperty, baseTextureOffset + Vector2.Scale(baseTextureScale, cropOffset));
+    }
+
+    public void ApplyRandomScreenShape(bool useDistortion)
     {
         if (screenRenderer == null) return;
 
@@ -225,7 +389,7 @@ public class FragmentSlot : MonoBehaviour
             chosen = normalScreenScales[Random.Range(0, normalScreenScales.Length)];
         }
 
-        screenRenderer.transform.localScale = chosen;
+        ApplyScreenScale(chosen);
     }
 
     public void SetVisible(bool visible)
@@ -304,6 +468,14 @@ public class FragmentSlot : MonoBehaviour
             return screenRenderer.transform.localPosition;
 
         return Vector3.zero;
+    }
+
+    public Vector3 GetCurrentScreenLocalScale()
+    {
+        if (screenRenderer != null)
+            return screenRenderer.transform.localScale;
+
+        return Vector3.one;
     }
 
     public Camera GetFragmentCamera()

@@ -1,5 +1,11 @@
 using UnityEngine;
 
+public enum CollectiveSlotScaleMode
+{
+    UseFragmentSlotScaleList,
+    UniformRange
+}
+
 public class FragmentController : MonoBehaviour
 {
     [Header("Fixed Solo Slots (P1-P4)")]
@@ -7,6 +13,19 @@ public class FragmentController : MonoBehaviour
 
     [Header("Random Collective Slots")]
     public FragmentSlot[] randomCollectiveSlots; // assign the remaining collective slots
+
+    [Header("Collective Slot Scale")]
+    public bool randomizeCollectiveSlotScale = true;
+    public CollectiveSlotScaleMode collectiveSlotScaleMode = CollectiveSlotScaleMode.UseFragmentSlotScaleList;
+    public float collectiveScaleMin = 1f;
+    public float collectiveScaleMax = 2f;
+    public bool animateCollectiveSlotScale = false;
+    public float collectiveScaleChangeIntervalMin = 2.5f;
+    public float collectiveScaleChangeIntervalMax = 5.0f;
+    public float collectiveScaleLerpSpeed = 1.6f;
+    public bool collectiveUseAspectJitter = true;
+    [Range(0f, 0.35f)] public float collectiveAspectJitter = 0.12f;
+    public bool preserveCollectiveTextureAspectWithCrop = true;
 
     [Header("Fixed Solo Corner Positions")]
     public Vector3 topLeftPos = new Vector3(-3.2f, 1.6f, 0.12f);
@@ -30,6 +49,7 @@ public class FragmentController : MonoBehaviour
 
     private float[] soloRefreshTimers;
     private float[] soloNextRefreshTimes;
+    private Vector3[] fixedSoloScreenScales;
 
     [Header("Collective Density Control")]
     public int minActiveCollectiveSlots = 2;
@@ -84,6 +104,9 @@ public class FragmentController : MonoBehaviour
     private float[] collectiveAccelerations;
     private float[] collectiveMaxSpeeds;
     private float[] collectiveDrags;
+    private Vector3[] collectiveTargetScreenScales;
+    private float[] collectiveScaleTimers;
+    private float[] collectiveNextScaleChangeTimes;
 
     [Header("Bone Pool")]
     public string[] stableBones = new string[]
@@ -132,6 +155,7 @@ public class FragmentController : MonoBehaviour
 
     void Start()
     {
+        CacheFixedSoloScreenScales();
         InitSoloRefreshTimers();
         InitCollectiveBrownianArrays();
 
@@ -172,6 +196,8 @@ public class FragmentController : MonoBehaviour
         {
             UpdateCollectiveBrownianMotion();
         }
+
+        UpdateCollectiveScaleAnimation();
     }
 
     void InitSoloRefreshTimers()
@@ -198,6 +224,18 @@ public class FragmentController : MonoBehaviour
         }
     }
 
+    void CacheFixedSoloScreenScales()
+    {
+        int count = fixedSoloSlots != null ? fixedSoloSlots.Length : 0;
+        fixedSoloScreenScales = new Vector3[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            FragmentSlot slot = fixedSoloSlots[i];
+            fixedSoloScreenScales[i] = slot != null ? slot.GetCurrentScreenLocalScale() : Vector3.one;
+        }
+    }
+
     void InitCollectiveBrownianArrays()
     {
         int count = randomCollectiveSlots != null ? randomCollectiveSlots.Length : 0;
@@ -206,10 +244,14 @@ public class FragmentController : MonoBehaviour
         collectiveAccelerations = new float[count];
         collectiveMaxSpeeds = new float[count];
         collectiveDrags = new float[count];
+        collectiveTargetScreenScales = new Vector3[count];
+        collectiveScaleTimers = new float[count];
+        collectiveNextScaleChangeTimes = new float[count];
 
         for (int i = 0; i < count; i++)
         {
             ResetCollectiveBrownianParams(i);
+            ResetCollectiveScaleAnimation(i);
         }
     }
 
@@ -244,6 +286,7 @@ public class FragmentController : MonoBehaviour
 
             FragmentProfile profile = GenerateFixedSoloProfile(s, positions[s]);
             slot.Activate(profile);
+            slot.SetTextureAspectCropEnabled(false);
 
             // Force position and front Z after activation.
             slot.transform.localPosition = positions[s];
@@ -267,6 +310,7 @@ public class FragmentController : MonoBehaviour
             {
                 FragmentProfile profile = GenerateFixedSoloProfile(s, positions[s]);
                 slot.Activate(profile);
+                slot.SetTextureAspectCropEnabled(false);
 
                 // Force position and front Z after activation.
                 slot.transform.localPosition = positions[s];
@@ -310,6 +354,7 @@ public class FragmentController : MonoBehaviour
         FragmentProfile profile = GenerateFixedSoloProfile(soloIdx, fixedPos);
 
         slot.Activate(profile);
+        slot.SetTextureAspectCropEnabled(false);
         slot.transform.localPosition = fixedPos;
     }
 
@@ -356,6 +401,13 @@ public class FragmentController : MonoBehaviour
         profile.fadeOutTime = 0.15f;
         profile.moveSpeed = 0f;
         profile.useDistortion = false;
+        profile.randomizeScreenScale = false;
+
+        if (fixedSoloScreenScales != null && soloIdx >= 0 && soloIdx < fixedSoloScreenScales.Length)
+        {
+            profile.overrideScreenScale = true;
+            profile.screenScale = fixedSoloScreenScales[soloIdx];
+        }
 
         ApplyShotProfile(profile);
         return profile;
@@ -376,8 +428,10 @@ public class FragmentController : MonoBehaviour
 
         FragmentProfile profile = GenerateRandomCollectiveProfile();
         freeSlot.Activate(profile);
+        freeSlot.SetTextureAspectCropEnabled(preserveCollectiveTextureAspectWithCrop);
 
         ResetCollectiveBrownianParams(freeIndex);
+        ResetCollectiveScaleAnimation(freeIndex);
 
         return true;
     }
@@ -451,10 +505,148 @@ public class FragmentController : MonoBehaviour
         profile.fadeOutTime = Mathf.Min(profile.fadeOutTime, maxAllowedFade);
 
         profile.useDistortion = Random.value < distortionChance;
+        ApplyCollectiveScaleProfile(profile);
 
         ApplyShotProfile(profile);
 
         return profile;
+    }
+
+    void ApplyCollectiveScaleProfile(FragmentProfile profile)
+    {
+        if (profile == null) return;
+
+        profile.randomizeScreenScale = randomizeCollectiveSlotScale;
+        profile.overrideScreenScale = false;
+
+        if (!randomizeCollectiveSlotScale) return;
+        if (collectiveSlotScaleMode != CollectiveSlotScaleMode.UniformRange) return;
+
+        float minScale = Mathf.Max(0.01f, Mathf.Min(collectiveScaleMin, collectiveScaleMax));
+        float maxScale = Mathf.Max(minScale, Mathf.Max(collectiveScaleMin, collectiveScaleMax));
+        float scale = Random.Range(minScale, maxScale);
+
+        profile.overrideScreenScale = true;
+        profile.screenScale = new Vector3(scale, scale, 1f);
+    }
+
+    void ResetCollectiveScaleAnimation(int idx)
+    {
+        if (collectiveTargetScreenScales == null) return;
+        if (idx < 0 || idx >= collectiveTargetScreenScales.Length) return;
+
+        FragmentSlot slot = GetCollectiveSlot(idx);
+        Vector3 currentScale = slot != null ? slot.GetScreenScale() : Vector3.one;
+
+        if (slot != null)
+            slot.SetTextureAspectCropEnabled(preserveCollectiveTextureAspectWithCrop);
+
+        collectiveTargetScreenScales[idx] = currentScale;
+        collectiveScaleTimers[idx] = 0f;
+        collectiveNextScaleChangeTimes[idx] = GetRandomScaleChangeInterval();
+
+        if (animateCollectiveSlotScale)
+            PickNewCollectiveTargetScale(idx);
+    }
+
+    void UpdateCollectiveScaleAnimation()
+    {
+        if (!animateCollectiveSlotScale) return;
+        if (randomCollectiveSlots == null) return;
+        if (collectiveTargetScreenScales == null || collectiveScaleTimers == null || collectiveNextScaleChangeTimes == null) return;
+
+        for (int i = 0; i < randomCollectiveSlots.Length; i++)
+        {
+            FragmentSlot slot = GetCollectiveSlot(i);
+            if (slot == null || !slot.IsActive()) continue;
+
+            collectiveScaleTimers[i] += Time.deltaTime;
+
+            if (collectiveScaleTimers[i] >= collectiveNextScaleChangeTimes[i])
+            {
+                PickNewCollectiveTargetScale(i);
+                collectiveScaleTimers[i] = 0f;
+                collectiveNextScaleChangeTimes[i] = GetRandomScaleChangeInterval();
+            }
+
+            Vector3 currentScale = slot.GetScreenScale();
+            Vector3 targetScale = collectiveTargetScreenScales[i];
+            Vector3 nextScale = Vector3.Lerp(currentScale, targetScale, Time.deltaTime * Mathf.Max(0.01f, collectiveScaleLerpSpeed));
+
+            slot.SetScreenScale(nextScale);
+        }
+    }
+
+    void PickNewCollectiveTargetScale(int idx)
+    {
+        if (collectiveTargetScreenScales == null) return;
+        if (idx < 0 || idx >= collectiveTargetScreenScales.Length) return;
+
+        collectiveTargetScreenScales[idx] = GenerateCollectiveTargetScale(idx);
+    }
+
+    Vector3 GenerateCollectiveTargetScale(int idx)
+    {
+        float uniformScale = Random.Range(GetSafeCollectiveScaleMin(), GetSafeCollectiveScaleMax());
+        Vector3 target = new Vector3(uniformScale, uniformScale, 1f);
+
+        if (collectiveSlotScaleMode == CollectiveSlotScaleMode.UseFragmentSlotScaleList)
+        {
+            FragmentSlot slot = GetCollectiveSlot(idx);
+            target = PickScaleFromSlotList(slot);
+        }
+
+        if (collectiveUseAspectJitter && collectiveAspectJitter > 0f)
+        {
+            float jitter = Mathf.Clamp(collectiveAspectJitter, 0f, 0.35f);
+            float aspectX = Random.Range(1f - jitter, 1f + jitter);
+            float aspectY = Random.Range(1f - jitter, 1f + jitter);
+            target.x *= aspectX;
+            target.y *= aspectY;
+        }
+
+        target.x = Mathf.Max(0.01f, target.x);
+        target.y = Mathf.Max(0.01f, target.y);
+        target.z = Mathf.Max(0.01f, target.z);
+
+        return target;
+    }
+
+    Vector3 PickScaleFromSlotList(FragmentSlot slot)
+    {
+        if (slot != null)
+        {
+            if (slot.normalScreenScales != null && slot.normalScreenScales.Length > 0)
+                return slot.normalScreenScales[Random.Range(0, slot.normalScreenScales.Length)];
+        }
+
+        float uniformScale = Random.Range(GetSafeCollectiveScaleMin(), GetSafeCollectiveScaleMax());
+        return new Vector3(uniformScale, uniformScale, 1f);
+    }
+
+    float GetRandomScaleChangeInterval()
+    {
+        float minInterval = Mathf.Max(0.1f, Mathf.Min(collectiveScaleChangeIntervalMin, collectiveScaleChangeIntervalMax));
+        float maxInterval = Mathf.Max(minInterval, Mathf.Max(collectiveScaleChangeIntervalMin, collectiveScaleChangeIntervalMax));
+        return Random.Range(minInterval, maxInterval);
+    }
+
+    float GetSafeCollectiveScaleMin()
+    {
+        return Mathf.Max(0.01f, Mathf.Min(collectiveScaleMin, collectiveScaleMax));
+    }
+
+    float GetSafeCollectiveScaleMax()
+    {
+        float minScale = GetSafeCollectiveScaleMin();
+        return Mathf.Max(minScale, Mathf.Max(collectiveScaleMin, collectiveScaleMax));
+    }
+
+    FragmentSlot GetCollectiveSlot(int idx)
+    {
+        if (randomCollectiveSlots == null) return null;
+        if (idx < 0 || idx >= randomCollectiveSlots.Length) return null;
+        return randomCollectiveSlots[idx];
     }
 
     void UpdateCollectiveBrownianMotion()

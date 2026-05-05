@@ -36,6 +36,9 @@ public class FragmentProfile
 
     [Header("Visual")]
     public bool useDistortion = false;
+    public bool randomizeScreenScale = true;
+    public bool overrideScreenScale = false;
+    public Vector3 screenScale = Vector3.one;
     public bool useBrownianMotion = false;
     public float brownianAcceleration = 1.0f;
     public float brownianMaxSpeed = 0.35f;
