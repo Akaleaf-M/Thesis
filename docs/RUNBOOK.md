@@ -209,6 +209,178 @@ MediaPipe Pose cam0
 
 Press `Esc` in the preview window to stop a capture script.
 
+## Windows One-Click Startup
+
+Windows startup script:
+
+```text
+Unity/MotionCapture/mediapipe/start_pose_system_windows.bat
+```
+
+Before using it, confirm camera indexes:
+
+```powershell
+cd Unity/MotionCapture/mediapipe
+python list_cameras_windows.py
+```
+
+Camera indexes are machine-dependent. The script currently defines:
+
+```bat
+set CAM_P1=0
+set CAM_P2=1
+set CAM_P3=2
+set CAM_P4=3
+```
+
+Edit those values in `start_pose_system_windows.bat` if `list_cameras_windows.py` reports a different mapping.
+
+Run the launcher from File Explorer or from terminal:
+
+```powershell
+cd Unity/MotionCapture/mediapipe
+.\start_pose_system_windows.bat
+```
+
+If Windows Terminal `wt` is available, the launcher opens one Windows Terminal window with tabs:
+
+- `Aggregator`
+- `P1 cam%CAM_P1%`
+- `P2 cam%CAM_P2%`
+- `P3 cam%CAM_P3%`
+- `P4 cam%CAM_P4%`
+
+Each tab runs `conda activate mediapipe` before launching Python. The launcher also sets `PYTHONPATH` so `run_mediapipe.py` can import the local `upose` package.
+
+If `wt` is not available or fails to launch, the script falls back to separate `cmd` windows. The fallback windows stay open so logs remain visible.
+
+Windows stopping:
+
+- In Windows Terminal mode, stop each tab with `Ctrl+C`, or close the Windows Terminal window.
+- In fallback mode, stop each `cmd` window with `Ctrl+C`, or close the windows.
+
+Expected port mapping:
+
+| Stream | Camera index variable | Unity solo port | Aggregator input port |
+| --- | --- | --- | --- |
+| P1 | `CAM_P1` | `52733` | `52833` |
+| P2 | `CAM_P2` | `52734` | `52834` |
+| P3 | `CAM_P3` | `52735` | `52835` |
+| P4 | `CAM_P4` | `52736` | `52836` |
+
+Aggregator output:
+
+| Source | Destination |
+| --- | --- |
+| `aggregator.py` fused collective body | Unity port `53000` |
+
+Code check result:
+
+- `run_mediapipe.py` accepts `camera_id`, `unity_port`, then `agg_port`.
+- `run_mediapipe.py` sends each `mprot` packet to both `unity_port` and `agg_port`.
+- `aggregator.py` listens on `52833-52836`.
+- `aggregator.py` outputs to `127.0.0.1:53000`.
+- This matches the confirmed DanceScene port design.
+
+## macOS Startup
+
+macOS startup script:
+
+```text
+Unity/MotionCapture/mediapipe/start_pose_system_mac.sh
+```
+
+Before first use, give it execute permission:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+chmod +x start_pose_system_mac.sh
+```
+
+Before using it on Mac Studio, confirm camera indexes:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+python list_cameras_mac.py
+```
+
+Camera indexes are machine-dependent. The script currently defines:
+
+```bash
+CAM_P1=0
+CAM_P2=1
+CAM_P3=2
+CAM_P4=3
+```
+
+Edit those values in `start_pose_system_mac.sh` if `list_cameras_mac.py` reports a different mapping.
+
+Run the launcher:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+./start_pose_system_mac.sh
+```
+
+The macOS launcher first tries to use Terminal.app tabs through `osascript` / AppleScript. If tab launch succeeds, one Terminal window opens with tabs for:
+
+- `aggregator.py`
+- `run_mediapipe.py "$CAM_P1" 52733 52833`
+- `run_mediapipe.py "$CAM_P2" 52734 52834`
+- `run_mediapipe.py "$CAM_P3" 52735 52835`
+- `run_mediapipe.py "$CAM_P4" 52736 52836`
+
+Each tab activates `CONDA_ENV=mediapipe` and sets `PYTHONPATH=<script-dir>/../upose` before launching Python.
+
+If Terminal.app tab automation fails, the script falls back to background processes in the current terminal. In fallback mode, it writes logs to:
+
+```text
+Unity/MotionCapture/mediapipe/logs/
+```
+
+In fallback mode, it writes launched process IDs to:
+
+```text
+Unity/MotionCapture/mediapipe/logs/pose_system_pids.txt
+```
+
+Expected port mapping:
+
+| Stream | Camera index variable | Unity solo port | Aggregator input port |
+| --- | --- | --- | --- |
+| P1 | `CAM_P1` | `52733` | `52833` |
+| P2 | `CAM_P2` | `52734` | `52834` |
+| P3 | `CAM_P3` | `52735` | `52835` |
+| P4 | `CAM_P4` | `52736` | `52836` |
+
+The script sets:
+
+```bash
+CONDA_ENV=mediapipe
+PYTHONPATH=<script-dir>/../upose
+```
+
+`PYTHONPATH` is required so `run_mediapipe.py` can import the local `upose` package.
+
+macOS stopping:
+
+- In Terminal.app tab mode, stop each tab with `Ctrl+C`, or close the Terminal window.
+- In fallback background/logs mode, press `Ctrl+C` in the launcher terminal to stop all launched processes.
+- In fallback mode, you can also stop by PID:
+
+```bash
+while read -r pid; do kill "$pid" 2>/dev/null; done < logs/pose_system_pids.txt
+```
+
+- If needed, force stop by command pattern:
+
+```bash
+pkill -f run_mediapipe.py
+pkill -f aggregator.py
+```
+
+If Terminal.app asks for permission to control the computer, allow Terminal / osascript accessibility automation, then rerun the launcher. If permission is not granted, the script should fall back to background/logs mode.
+
 ### 4. Press Play in Unity
 
 After `aggregator.py` and at least one `run_mediapipe.py` process are running, press Play in Unity.
@@ -276,11 +448,15 @@ Windows helper:
 python list_cameras_windows.py
 ```
 
+Use this before running `start_pose_system_windows.bat`. If the camera order changes after unplugging/replugging devices, rerun the camera listing and update `CAM_P1` to `CAM_P4` in the launcher.
+
 macOS helper:
 
 ```bash
 python list_cameras_mac.py
 ```
+
+Use this before running `start_pose_system_mac.sh` on Mac Studio. If the camera order changes after unplugging/replugging devices, rerun the camera listing and update `CAM_P1` to `CAM_P4` in the launcher.
 
 The existing `how to start.txt` mentions these example camera labels:
 
@@ -335,6 +511,30 @@ Try:
 2. Check ports with `netstat -ano | findstr :52833`.
 3. Restart the aggregator.
 
+For the Windows launcher, close the existing `Pose Aggregator 52833-52836 to 53000` terminal window before launching again.
+
+### Camera index is wrong
+
+Symptoms:
+
+- The OpenCV preview shows the wrong camera.
+- A preview window is black.
+- `run_mediapipe.py` raises `Failed to open camera index`.
+
+Try:
+
+1. Run `python list_cameras_windows.py`.
+2. Confirm which physical camera should be P1, P2, P3, and P4.
+3. Edit `CAM_P1`, `CAM_P2`, `CAM_P3`, and `CAM_P4` in `start_pose_system_windows.bat`.
+4. Relaunch the Windows startup script.
+
+On macOS / Mac Studio:
+
+1. Run `python list_cameras_mac.py`.
+2. Confirm which physical camera should be P1, P2, P3, and P4.
+3. Edit `CAM_P1`, `CAM_P2`, `CAM_P3`, and `CAM_P4` in `start_pose_system_mac.sh`.
+4. Relaunch the macOS startup script.
+
 ### Unity does not move
 
 Check:
@@ -348,6 +548,19 @@ Check:
 - Does `ReadyPlayerAvatar.cs` have a valid `MotionTrackingPose` source?
 
 TODO: add Unity Console screenshots or exact log examples from a successful run.
+
+If using `start_pose_system_windows.bat`, also check:
+
+- Did the aggregator window print `[agg] listening on UDP 52833` through `[agg] listening on UDP 52836`?
+- Did the P1-P4 windows print the expected `unity_port` and `agg_port` values?
+- Are the OpenCV preview windows detecting pose landmarks?
+
+If using `start_pose_system_mac.sh`, also check:
+
+- In Terminal.app tab mode, did each tab start with the expected process title/command?
+- In fallback mode, do the files in `logs/` show aggregator and P1-P4 startup logs?
+- Did the P1-P4 logs print the expected `unity_port` and `agg_port` values?
+- Are the OpenCV preview windows detecting pose landmarks?
 
 ### Camera preview opens but no pose is detected
 
@@ -368,6 +581,53 @@ Likely cause:
 - Local `upose` package is not installed or not on `PYTHONPATH`.
 
 TODO: document exact environment setup. The existing note says `conda activate mediapipe`, but the environment definition is not present in the repository.
+
+### Conda activate fails
+
+The launchers expect a conda environment named:
+
+```text
+mediapipe
+```
+
+Windows launcher:
+
+```bat
+set CONDA_ENV=mediapipe
+```
+
+macOS launcher:
+
+```bash
+CONDA_ENV=mediapipe
+```
+
+If activation fails:
+
+- Confirm conda is installed and available in the terminal.
+- Check environments with `conda env list`.
+- If the environment name is different, update `CONDA_ENV` in the launcher.
+- On macOS, if `conda` is not available in the shell, initialize conda for that shell first. The script needs `conda info --base` and `<conda-base>/etc/profile.d/conda.sh`.
+
+### `upose` import fails
+
+Symptom:
+
+```text
+ModuleNotFoundError: No module named 'upose'
+```
+
+Check:
+
+- The launcher is being run from `Unity/MotionCapture/mediapipe`, or use the launcher so it can auto-locate its own folder.
+- On macOS, `start_pose_system_mac.sh` sets `PYTHONPATH` to include `Unity/MotionCapture/upose`.
+- If running manually, set `PYTHONPATH` before launching:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+export PYTHONPATH="$(cd ../upose && pwd):${PYTHONPATH}"
+python run_mediapipe.py 0 52733 52833
+```
 
 ### UDP sender reports receiver not listening
 

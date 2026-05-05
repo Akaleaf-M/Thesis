@@ -70,6 +70,21 @@ Unity Inspector-confirmed port design:
 
 The script displays an OpenCV preview window named like `MediaPipe Pose cam0`. Pressing `Esc` exits the loop.
 
+Windows startup helper:
+
+- `Unity/MotionCapture/mediapipe/start_pose_system_windows.bat`
+
+This launcher starts `aggregator.py` and four `run_mediapipe.py` processes in separate terminal windows. It preserves the confirmed port mapping:
+
+| Stream | Direct Unity solo port | Aggregator input port |
+| --- | --- | --- |
+| P1 | `52733` | `52833` |
+| P2 | `52734` | `52834` |
+| P3 | `52735` | `52835` |
+| P4 | `52736` | `52836` |
+
+Camera indexes are machine-dependent. Confirm them with `list_cameras_windows.py` before relying on the launcher defaults.
+
 ## Python UPose Rotation Extraction
 
 `run_mediapipe.py` imports:

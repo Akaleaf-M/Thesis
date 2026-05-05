@@ -26,6 +26,7 @@ cd "$SCRIPT_DIR"
 
 LOG_DIR="$SCRIPT_DIR/logs"
 PID_FILE="$LOG_DIR/pose_system_pids.txt"
+COMMAND_DIR="$LOG_DIR/terminal_tab_commands"
 mkdir -p "$LOG_DIR"
 : > "$PID_FILE"
 
@@ -91,6 +92,101 @@ launch_process() {
   echo "  pid: $pid"
 }
 
+shell_quote() {
+  printf "'%s'" "$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+}
+
+write_terminal_command() {
+  local file="$1"
+  shift
+  local quoted_cmd=""
+
+  while (($#)); do
+    quoted_cmd+=" $(shell_quote "$1")"
+    shift
+  done
+
+  cat > "$file" <<EOF
+#!/usr/bin/env bash
+cd $(shell_quote "$SCRIPT_DIR") || exit 1
+export PYTHONPATH=$(shell_quote "$SCRIPT_DIR/../upose")\${PYTHONPATH:+:\$PYTHONPATH}
+
+if ! command -v conda >/dev/null 2>&1; then
+  echo "ERROR: conda command is not available in this shell."
+  echo "Open a shell where conda is initialized, or initialize conda first."
+  echo "Expected environment: $CONDA_ENV"
+  exec "\${SHELL:-/bin/bash}" -l
+fi
+
+CONDA_BASE="\$(conda info --base 2>/dev/null || true)"
+if [[ -z "\$CONDA_BASE" ]] || [[ ! -f "\$CONDA_BASE/etc/profile.d/conda.sh" ]]; then
+  echo "ERROR: could not find conda activation script."
+  echo "conda info --base returned: \${CONDA_BASE:-<empty>}"
+  exec "\${SHELL:-/bin/bash}" -l
+fi
+
+source "\$CONDA_BASE/etc/profile.d/conda.sh"
+if ! conda activate $(shell_quote "$CONDA_ENV"); then
+  echo "ERROR: failed to activate conda environment: $CONDA_ENV"
+  echo "Check available environments with: conda env list"
+  exec "\${SHELL:-/bin/bash}" -l
+fi
+
+echo "Running:${quoted_cmd}"
+${quoted_cmd}
+status=\$?
+echo
+echo "Process exited with status \$status. Press Ctrl+D or close this tab."
+exec "\${SHELL:-/bin/bash}" -l
+EOF
+
+  chmod +x "$file"
+}
+
+launch_terminal_tabs() {
+  if ! command -v osascript >/dev/null 2>&1; then
+    return 1
+  fi
+
+  rm -rf "$COMMAND_DIR"
+  mkdir -p "$COMMAND_DIR"
+
+  local agg_cmd="$COMMAND_DIR/aggregator.command"
+  local p1_cmd="$COMMAND_DIR/p1.command"
+  local p2_cmd="$COMMAND_DIR/p2.command"
+  local p3_cmd="$COMMAND_DIR/p3.command"
+  local p4_cmd="$COMMAND_DIR/p4.command"
+
+  write_terminal_command "$agg_cmd" python -u aggregator.py
+  write_terminal_command "$p1_cmd" python -u run_mediapipe.py "$CAM_P1" 52733 52833
+  write_terminal_command "$p2_cmd" python -u run_mediapipe.py "$CAM_P2" 52734 52834
+  write_terminal_command "$p3_cmd" python -u run_mediapipe.py "$CAM_P3" 52735 52835
+  write_terminal_command "$p4_cmd" python -u run_mediapipe.py "$CAM_P4" 52736 52836
+
+  osascript <<OSA
+tell application "Terminal"
+  activate
+  do script "bash $(shell_quote "$agg_cmd")"
+end tell
+delay 0.6
+tell application "System Events" to keystroke "t" using command down
+delay 0.3
+tell application "Terminal" to do script "bash $(shell_quote "$p1_cmd")" in selected tab of front window
+delay 0.3
+tell application "System Events" to keystroke "t" using command down
+delay 0.3
+tell application "Terminal" to do script "bash $(shell_quote "$p2_cmd")" in selected tab of front window
+delay 0.3
+tell application "System Events" to keystroke "t" using command down
+delay 0.3
+tell application "Terminal" to do script "bash $(shell_quote "$p3_cmd")" in selected tab of front window
+delay 0.3
+tell application "System Events" to keystroke "t" using command down
+delay 0.3
+tell application "Terminal" to do script "bash $(shell_quote "$p4_cmd")" in selected tab of front window
+OSA
+}
+
 activate_conda
 
 # Let run_mediapipe.py import the local Python UPose package.
@@ -100,6 +196,17 @@ echo "Starting pose system from: $SCRIPT_DIR"
 echo "Conda environment: $CONDA_ENV"
 echo "PYTHONPATH includes: $SCRIPT_DIR/../upose"
 echo "Confirm camera indexes with: python list_cameras_mac.py"
+echo
+
+echo "Trying to open Terminal.app tabs..."
+if launch_terminal_tabs; then
+  echo "Launched pose system in Terminal.app tabs."
+  echo "Stop each tab with Ctrl+C, or close the Terminal window."
+  echo "If Terminal tab automation is blocked, grant Terminal/osascript accessibility permission and rerun."
+  exit 0
+fi
+
+echo "Terminal.app tab launch failed. Falling back to background processes with logs."
 echo
 
 launch_process "aggregator_52833_52836_to_53000" python -u aggregator.py
