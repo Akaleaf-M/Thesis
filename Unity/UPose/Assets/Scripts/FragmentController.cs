@@ -155,6 +155,7 @@ public class FragmentController : MonoBehaviour
 
     void Start()
     {
+        ConfigureFragmentSlotKinds();
         CacheFixedSoloScreenScales();
         InitSoloRefreshTimers();
         InitCollectiveBrownianArrays();
@@ -284,6 +285,7 @@ public class FragmentController : MonoBehaviour
             FragmentSlot slot = fixedSoloSlots[s];
             if (slot == null) continue;
 
+            slot.SetSlotKind(FragmentSlotKind.Solo);
             FragmentProfile profile = GenerateFixedSoloProfile(s, positions[s]);
             slot.Activate(profile);
             slot.SetTextureAspectCropEnabled(false);
@@ -306,6 +308,7 @@ public class FragmentController : MonoBehaviour
             FragmentSlot slot = fixedSoloSlots[s];
             if (slot == null) continue;
 
+            slot.SetSlotKind(FragmentSlotKind.Solo);
             if (!slot.IsActive())
             {
                 FragmentProfile profile = GenerateFixedSoloProfile(s, positions[s]);
@@ -351,6 +354,7 @@ public class FragmentController : MonoBehaviour
         FragmentSlot slot = fixedSoloSlots[soloIdx];
         if (slot == null) return;
 
+        slot.SetSlotKind(FragmentSlotKind.Solo);
         FragmentProfile profile = GenerateFixedSoloProfile(soloIdx, fixedPos);
 
         slot.Activate(profile);
@@ -426,6 +430,7 @@ public class FragmentController : MonoBehaviour
         FragmentSlot freeSlot = randomCollectiveSlots[freeIndex];
         if (freeSlot == null) return false;
 
+        freeSlot.SetSlotKind(FragmentSlotKind.Collective);
         FragmentProfile profile = GenerateRandomCollectiveProfile();
         freeSlot.Activate(profile);
         freeSlot.SetTextureAspectCropEnabled(preserveCollectiveTextureAspectWithCrop);
@@ -434,6 +439,27 @@ public class FragmentController : MonoBehaviour
         ResetCollectiveScaleAnimation(freeIndex);
 
         return true;
+    }
+
+    void ConfigureFragmentSlotKinds()
+    {
+        if (fixedSoloSlots != null)
+        {
+            foreach (FragmentSlot slot in fixedSoloSlots)
+            {
+                if (slot != null)
+                    slot.SetSlotKind(FragmentSlotKind.Solo);
+            }
+        }
+
+        if (randomCollectiveSlots != null)
+        {
+            foreach (FragmentSlot slot in randomCollectiveSlots)
+            {
+                if (slot != null)
+                    slot.SetSlotKind(FragmentSlotKind.Collective);
+            }
+        }
     }
 
     int GetFreeCollectiveSlotIndex()

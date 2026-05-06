@@ -843,7 +843,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -1163,6 +1163,8 @@ MonoBehaviour:
   renderTextureDepth: 16
   renderTextureFormat: 0
   screenTextureProperty: _BaseMap
+  preserveTextureAspectWithCrop: 0
+  compensateOverlayTextScale: 1
   normalScreenScales:
   - {x: 1, y: 1, z: 1}
   - {x: 1.5, y: 1.5, z: 1}
@@ -1224,9 +1226,14 @@ MonoBehaviour:
   markerSymbol: "\u25A0"
   textHexColor: '#FFFFFF'
   anchorOffset: {x: 0.03, y: -0.02, z: 0}
+  alignToSlotBorder: 1
+  borderTop: {fileID: 6631604983150767943}
+  borderLeft: {fileID: 7681859017346664057}
+  borderPadding: {x: 0.03, y: 0.03}
   updateLayoutEveryFrame: 1
   autoFindFragmentSlot: 1
   autoFindLabelText: 1
+  autoFindBorderReferences: 1
 --- !u!1 &7882248021863160768
 GameObject:
   m_ObjectHideFlags: 0

@@ -760,6 +760,14 @@ PrefabInstance:
       value: FragmentSlot_P2
       objectReference: {fileID: 0}
     - target: {fileID: 8342140807139965826, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+      propertyPath: borderTop
+      value: 
+      objectReference: {fileID: 2118715602}
+    - target: {fileID: 8342140807139965826, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+      propertyPath: borderLeft
+      value: 
+      objectReference: {fileID: 2089709377}
+    - target: {fileID: 8342140807139965826, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
       propertyPath: labelPrefix
       value: SOLO
       objectReference: {fileID: 0}
@@ -2539,6 +2547,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: FragmentSlot_P1
       objectReference: {fileID: 0}
+    - target: {fileID: 7752033227633318662, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8342140807139965826, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+      propertyPath: borderTop
+      value: 
+      objectReference: {fileID: 2110883603}
+    - target: {fileID: 8342140807139965826, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+      propertyPath: borderLeft
+      value: 
+      objectReference: {fileID: 1571255854}
     - target: {fileID: 8342140807139965826, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
       propertyPath: labelPrefix
       value: SOLO
@@ -2825,6 +2845,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
+--- !u!4 &1571255854 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7681859017346664057, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+  m_PrefabInstance: {fileID: 1387903900}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1640978322 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2165188923974058311, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
@@ -3204,6 +3229,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
+--- !u!4 &2089709377 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7681859017346664057, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+  m_PrefabInstance: {fileID: 524455150}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2110883603 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6631604983150767943, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+  m_PrefabInstance: {fileID: 1387903900}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2118715602 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6631604983150767943, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
+  m_PrefabInstance: {fileID: 524455150}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2140025071
 PrefabInstance:
   m_ObjectHideFlags: 0

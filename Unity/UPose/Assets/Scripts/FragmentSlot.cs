@@ -1,6 +1,12 @@
 using TMPro;
 using UnityEngine;
 
+public enum FragmentSlotKind
+{
+    Solo,
+    Collective
+}
+
 public class FragmentSlot : MonoBehaviour
 {
     [Header("Slot Identity")]
@@ -24,6 +30,26 @@ public class FragmentSlot : MonoBehaviour
 
     [Header("Overlay Text")]
     public bool compensateOverlayTextScale = true;
+
+    [Header("Annotation")]
+    public bool enableAnnotationSystem = true;
+    public FragmentSlotKind slotKind = FragmentSlotKind.Collective;
+    public bool showSoloCoordinates = false;
+    public bool showCollectiveCoordinates = true;
+    public bool showCollectiveBoneLabel = true;
+    public bool showCollectiveStatusLabel = true;
+    public bool collectiveLabelOutside = true;
+    public Vector2 labelOffset = new Vector2(0.03f, 0.03f);
+    public Vector2 collectiveLabelOffset = new Vector2(0.03f, 0.08f);
+    public string soloLabelPrefix = "SOLO";
+    public string collectiveLabelPrefix = "COLLECTIVE";
+    public string collectiveSourceLabel = "AGGREGATED_BODY";
+    public string collectiveStatusLabel = "LIVE";
+    public string annotationTextHexColor = "#FFFFFF";
+    public string annotationAccentHexColor = "#00FF00";
+    public bool showAnnotationMarker = true;
+    public string annotationMarkerSymbol = "\u25A0";
+    public string annotationMarkerHexColor = "#00FFFF";
 
     [Header("Screen Shapes")]
     public Vector3[] normalScreenScales = new Vector3[]
@@ -50,6 +76,14 @@ public class FragmentSlot : MonoBehaviour
     private Vector3 baseScreenLocalScale = Vector3.one;
     private TextMeshPro[] overlayTexts;
     private Vector3[] overlayTextBaseScales;
+    private FeedLabelController feedLabelController;
+    private TextMeshPro feedLabelText;
+    private Transform feedMarker;
+    private TrackLabelController trackLabelController;
+    private TextMeshPro trackLabelText;
+    private Transform borderTop;
+    private Transform borderLeft;
+    private Transform borderRight;
 
     private Vector3 startPos;
     private Vector3 targetPos;
@@ -58,6 +92,7 @@ public class FragmentSlot : MonoBehaviour
     void Awake()
     {
         AutoAssignReferences();
+        CacheAnnotationReferences();
         CacheOverlayTextScales();
         InitializeRuntimeResources();
         SetVisible(false);
@@ -101,6 +136,8 @@ public class FragmentSlot : MonoBehaviour
         {
             Deactivate();
         }
+
+        UpdateAnnotation();
     }
 
     void AutoAssignReferences()
@@ -121,6 +158,12 @@ public class FragmentSlot : MonoBehaviour
         if (overlayRoot == null)
         {
             Transform overlay = transform.Find("Overlay");
+            if (overlay == null)
+            {
+                Transform screen = transform.Find("Screen");
+                if (screen != null) overlay = screen.Find("Overlay");
+            }
+
             if (overlay != null) overlayRoot = overlay;
         }
 
@@ -223,6 +266,8 @@ public class FragmentSlot : MonoBehaviour
 
         SetVisible(true);
         SetAlpha(0f);
+        RefreshAnnotationMode();
+        UpdateAnnotation();
     }
 
     public void Deactivate()
@@ -232,6 +277,13 @@ public class FragmentSlot : MonoBehaviour
         timer = 0f;
         SetVisible(false);
         SetAlpha(0f);
+    }
+
+    public void SetSlotKind(FragmentSlotKind kind)
+    {
+        slotKind = kind;
+        RefreshAnnotationMode();
+        UpdateAnnotation();
     }
 
     void ApplyProfileScreenScale(FragmentProfile profile)
@@ -405,7 +457,11 @@ public class FragmentSlot : MonoBehaviour
             overlayRoot.gameObject.SetActive(visible);
 
             if (visible)
+            {
                 RestoreTrackingBoxFrame();
+                RefreshAnnotationMode();
+                UpdateAnnotation();
+            }
         }
     }
 
@@ -486,5 +542,220 @@ public class FragmentSlot : MonoBehaviour
     public BoneTrackingCamera GetTrackingCamera()
     {
         return trackingCamera;
+    }
+
+    void CacheAnnotationReferences()
+    {
+        if (overlayRoot == null) return;
+
+        if (feedLabelController == null)
+            feedLabelController = overlayRoot.GetComponentInChildren<FeedLabelController>(true);
+
+        if (feedLabelController != null)
+        {
+            feedLabelController.enabled = false;
+            feedMarker = feedLabelController.transform;
+
+            if (feedLabelText == null)
+                feedLabelText = feedLabelController.labelText;
+        }
+
+        if (feedLabelText == null)
+        {
+            Transform feedLabel = overlayRoot.Find("FeedMarker/FeedLabel");
+            if (feedLabel != null)
+                feedLabelText = feedLabel.GetComponent<TextMeshPro>();
+        }
+
+        if (feedMarker == null)
+        {
+            Transform marker = overlayRoot.Find("FeedMarker");
+            if (marker != null)
+                feedMarker = marker;
+            else if (feedLabelText != null)
+                feedMarker = feedLabelText.transform;
+        }
+
+        if (trackLabelController == null)
+            trackLabelController = overlayRoot.GetComponentInChildren<TrackLabelController>(true);
+
+        if (trackLabelController != null && trackLabelText == null)
+            trackLabelText = trackLabelController.labelText;
+
+        if (trackLabelText == null)
+        {
+            Transform trackLabel = overlayRoot.Find("TrackingBox_Frame/TrackLabel");
+            if (trackLabel != null)
+                trackLabelText = trackLabel.GetComponent<TextMeshPro>();
+        }
+
+        if (borderTop == null)
+            borderTop = overlayRoot.Find("Border_Top");
+
+        if (borderLeft == null)
+            borderLeft = overlayRoot.Find("Border_Left");
+
+        if (borderRight == null)
+            borderRight = overlayRoot.Find("Border_Right");
+    }
+
+    void RefreshAnnotationMode()
+    {
+        if (!enableAnnotationSystem) return;
+
+        CacheAnnotationReferences();
+
+        if (feedLabelText != null)
+        {
+            feedLabelText.alignment = TextAlignmentOptions.TopLeft;
+        }
+
+        bool showTrackLabel = slotKind == FragmentSlotKind.Collective && showCollectiveBoneLabel;
+
+        if (trackLabelController != null)
+        {
+            trackLabelController.showBoneName = showTrackLabel;
+            trackLabelController.labelPrefix = "TRACK";
+        }
+
+        if (trackLabelText != null)
+            trackLabelText.gameObject.SetActive(showTrackLabel);
+    }
+
+    void UpdateAnnotation()
+    {
+        if (!enableAnnotationSystem) return;
+
+        CacheAnnotationReferences();
+        UpdateFeedLabelContent();
+        UpdateFeedLabelPosition();
+        RefreshAnnotationMode();
+    }
+
+    void UpdateFeedLabelContent()
+    {
+        if (feedLabelText == null) return;
+
+        Vector3 pos = transform.localPosition;
+        string indexText = slotIndex.ToString("00");
+
+        if (slotKind == FragmentSlotKind.Solo)
+        {
+            string label = $"{soloLabelPrefix}_{indexText}";
+
+            if (showSoloCoordinates)
+                label += $"\nX:{pos.x:F2} Y:{pos.y:F2}";
+
+            feedLabelText.text = FormatAnnotationWithMarker(label);
+            return;
+        }
+
+        string collectiveLabel = $"{collectiveLabelPrefix}_{indexText}";
+        string bodyRegion = SimplifyBoneName(GetCurrentBoneName());
+
+        if (showCollectiveBoneLabel)
+            collectiveLabel += $"\n<color={annotationAccentHexColor}>TRACK_{bodyRegion}</color>";
+
+        if (showCollectiveCoordinates)
+            collectiveLabel += $"\nX:{pos.x:F2} Y:{pos.y:F2}";
+
+        if (showCollectiveStatusLabel)
+            collectiveLabel += $"\n{collectiveSourceLabel} <color={annotationAccentHexColor}>{collectiveStatusLabel}</color>";
+
+        feedLabelText.text = FormatAnnotationWithMarker(collectiveLabel);
+    }
+
+    void UpdateFeedLabelPosition()
+    {
+        if (feedMarker == null || feedLabelText == null) return;
+
+        Vector3 anchor = GetAnnotationAnchor();
+        feedMarker.localPosition = anchor;
+
+        feedLabelText.alignment = TextAlignmentOptions.TopLeft;
+        feedLabelText.ForceMeshUpdate();
+
+        Bounds bounds = feedLabelText.textBounds;
+        Vector3 textScale = feedLabelText.transform.localScale;
+        Vector3 textLocal = feedLabelText.transform.localPosition;
+        textLocal.x = -bounds.min.x * textScale.x;
+        textLocal.y = -bounds.max.y * textScale.y;
+        feedLabelText.transform.localPosition = textLocal;
+    }
+
+    Vector3 GetAnnotationAnchor()
+    {
+        if (borderTop == null || borderLeft == null)
+            return new Vector3(labelOffset.x, -labelOffset.y, 0.001f);
+
+        bool outside = slotKind == FragmentSlotKind.Collective && collectiveLabelOutside;
+        Vector2 offset = outside ? collectiveLabelOffset : labelOffset;
+        Vector2 compensatedOffset = CompensateAnnotationOffset(offset);
+
+        if (outside && borderRight != null)
+        {
+            return new Vector3(
+                borderRight.localPosition.x + compensatedOffset.x,
+                borderTop.localPosition.y - compensatedOffset.y,
+                0.001f
+            );
+        }
+
+        float y = outside
+            ? borderTop.localPosition.y + compensatedOffset.y
+            : borderTop.localPosition.y - compensatedOffset.y;
+
+        return new Vector3(
+            borderLeft.localPosition.x + compensatedOffset.x,
+            y,
+            0.001f
+        );
+    }
+
+    Vector2 CompensateAnnotationOffset(Vector2 offset)
+    {
+        if (screenRenderer == null)
+            return offset;
+
+        Vector3 currentScale = screenRenderer.transform.localScale;
+        return new Vector2(
+            offset.x * SafeScaleRatio(baseScreenLocalScale.x, currentScale.x),
+            offset.y * SafeScaleRatio(baseScreenLocalScale.y, currentScale.y)
+        );
+    }
+
+    string FormatAnnotationWithMarker(string body)
+    {
+        string text = $"<color={annotationTextHexColor}>{body}</color>";
+
+        if (!showAnnotationMarker)
+            return text;
+
+        string marker = $"<color={annotationMarkerHexColor}>{annotationMarkerSymbol}</color>";
+        return $"{marker} {text}";
+    }
+
+    string GetCurrentBoneName()
+    {
+        if (trackingCamera == null) return string.Empty;
+        return trackingCamera.GetCurrentBoneName();
+    }
+
+    string SimplifyBoneName(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName)) return "UNK";
+
+        if (fullName.Contains("Head")) return "HEAD";
+        if (fullName.Contains("Spine2")) return "TORSO";
+        if (fullName.Contains("Spine")) return "TORSO";
+        if (fullName.Contains("Hips")) return "CORE";
+        if (fullName.Contains("LeftArm")) return "ARM";
+        if (fullName.Contains("RightArm")) return "ARM";
+        if (fullName.Contains("LeftForeArm")) return "FOREARM";
+        if (fullName.Contains("RightForeArm")) return "FOREARM";
+        if (fullName.Contains("LeftHand")) return "HAND";
+        if (fullName.Contains("RightHand")) return "HAND";
+
+        return "SEG";
     }
 }
