@@ -26,7 +26,9 @@ Python MediaPipe camera scripts
 - Camera devices available to OpenCV.
 - Optional projection mapping software: final workflow is not decided yet. During development, assume Unity outputs a single window; later mapping will likely use MadMapper or Resolume.
 
-TODO: document exact Python version, conda environment name, package versions, and Unity Editor version.
+Mac Studio M1 Max deployment status: environment setup and camera index mapping verified. Python / MediaPipe / UPose / UDP flow has been tested successfully on the Mac Studio.
+
+TODO: document exact Python version, package versions, and Unity Editor version. The `mediapipe` conda environment is verified on the Mac Studio, but an exported package list is not yet recorded in this repository.
 
 ## Important Paths
 
@@ -297,14 +299,25 @@ cd Unity/MotionCapture/mediapipe
 chmod +x start_pose_system_mac.sh
 ```
 
-Before using it on Mac Studio, confirm camera indexes:
+Mac Studio M1 Max hardware test status:
+
+- Environment setup verified.
+- Python / MediaPipe / UPose / UDP flow verified.
+- `start_pose_system_mac.sh` is the current Mac Studio launcher baseline.
+- Camera index mapping verified on the current Mac Studio setup:
+  - `CAM_P1=0`
+  - `CAM_P2=1`
+  - `CAM_P3=2`
+  - `CAM_P4=3`
+
+Before using it on a changed Mac Studio hardware setup, confirm camera indexes:
 
 ```bash
 cd Unity/MotionCapture/mediapipe
 python list_cameras_mac.py
 ```
 
-Camera indexes are machine-dependent. The script currently defines:
+Camera indexes are machine-dependent. The script currently defines the Mac Studio verified default mapping:
 
 ```bash
 CAM_P1=0
@@ -313,7 +326,7 @@ CAM_P3=2
 CAM_P4=3
 ```
 
-Edit those values in `start_pose_system_mac.sh` if `list_cameras_mac.py` reports a different mapping.
+Edit those values in `start_pose_system_mac.sh` if `list_cameras_mac.py` reports a different mapping. If the USB hub, camera ports, or physical camera order changes, or if macOS changes device ordering after reboot, rerun `python list_cameras_mac.py`.
 
 Run the launcher:
 
@@ -456,7 +469,16 @@ macOS helper:
 python list_cameras_mac.py
 ```
 
-Use this before running `start_pose_system_mac.sh` on Mac Studio. If the camera order changes after unplugging/replugging devices, rerun the camera listing and update `CAM_P1` to `CAM_P4` in the launcher.
+Mac Studio M1 Max verified mapping:
+
+| Stream | Camera index |
+| --- | --- |
+| `CAM_P1` | `0` |
+| `CAM_P2` | `1` |
+| `CAM_P3` | `2` |
+| `CAM_P4` | `3` |
+
+Use this before running `start_pose_system_mac.sh` if the hardware setup changes. If the USB hub, camera ports, camera order, or macOS device ordering changes after reboot, rerun the camera listing and update `CAM_P1` to `CAM_P4` in the launcher.
 
 The existing `how to start.txt` mentions these example camera labels:
 
@@ -466,7 +488,7 @@ The existing `how to start.txt` mentions these example camera labels:
 2 = OBS virtual camera
 ```
 
-TODO: confirm the current machine's actual camera index mapping before installation.
+Current Mac Studio test status: environment setup and camera index mapping verified.
 
 ## Port Checks on Windows
 
@@ -580,7 +602,7 @@ Likely cause:
 - Missing dependencies.
 - Local `upose` package is not installed or not on `PYTHONPATH`.
 
-TODO: document exact environment setup. The existing note says `conda activate mediapipe`, but the environment definition is not present in the repository.
+Mac Studio M1 Max status: `conda activate mediapipe`, Python / MediaPipe / UPose import, and UDP flow have been verified. Remaining documentation task: record exact Python version and package versions, for example with `python --version` and `conda env export`.
 
 ### Conda activate fails
 
