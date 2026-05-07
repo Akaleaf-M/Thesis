@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1001 &21989099
 PrefabInstance:
@@ -222,7 +222,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &93358268
 GameObject:
@@ -282,7 +282,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 1813898620}
   Delay: 0
@@ -544,7 +544,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
@@ -667,7 +667,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &453095663
 GameObject:
@@ -696,7 +696,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 586106501}
   Delay: 0
@@ -907,7 +907,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -1034,7 +1034,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -1159,7 +1159,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -1173,7 +1173,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -1290,7 +1290,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -1304,7 +1304,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -1358,7 +1358,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 555738065}
   Delay: 0
@@ -1426,7 +1426,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &683087187
 GameObject:
@@ -1455,7 +1455,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fd386b5c3a8d3554083a1c0c083c036c, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentController
   fixedSoloSlots:
   - {fileID: 2039359057}
@@ -1560,7 +1560,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!114 &693888319 stripped
 MonoBehaviour:
@@ -1571,7 +1571,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!114 &807533423 stripped
 MonoBehaviour:
@@ -1582,7 +1582,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &832031586
 GameObject:
@@ -1614,7 +1614,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -1738,7 +1738,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_IsGlobal: 1
   priority: 0
@@ -1883,7 +1883,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -1897,7 +1897,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -2050,7 +2050,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -2072,7 +2072,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -2103,7 +2103,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 885882843}
   Delay: 0
@@ -2189,7 +2189,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 75adbe8e57e41b340944c4a2c29469bc, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BackgroundStreamController
   tokenPrefab: {fileID: 652933647693811844, guid: af3005c3ab629ce4ca8907a2c13b8d12, type: 3}
   beatLane: {fileID: 537983054}
@@ -2274,7 +2274,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 929797343}
   Delay: 0
@@ -2293,15 +2293,15 @@ MonoBehaviour:
   glitchIntervalRange: {x: 0.5, y: 1.2}
   videoGlitchDurationRange: {x: 0.28, y: 0.75}
   glitchFlickerRate: 30
-  glitchFrameDropChance: 0.28
+  glitchFrameDropChance: 1
   useGlitchTexture: 1
   glitchTexture: {fileID: 8400000, guid: 75c66af96cbcddb42a563283665a1d12, type: 2}
   invertGlitchTexture: 1
-  videoGlitchChance: 0.75
+  videoGlitchChance: 0.6
   tintGlitchTextureWithColor: 0
   glitchTextureTint: {r: 1, g: 1, b: 1, a: 1}
   useMeshGlitch: 1
-  meshGlitchChance: 0.25
+  meshGlitchChance: 0.4
   suppressMeshGlitchInCollectiveSlotCameras: 1
   collectiveSlotCameraRootPrefix: FragmentSlot_C
   meshGlitchEnterFlickerDurationRange: {x: 0.08, y: 0.16}
@@ -2347,7 +2347,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -2482,7 +2482,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 04793259141e9f34781d331eda430203, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlotConnectionRenderer
   controller: {fileID: 683087188}
   lineMaterial: {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
@@ -2635,7 +2635,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -2764,7 +2764,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -3003,7 +3003,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!4 &1571255854 stripped
 Transform:
@@ -3019,7 +3019,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &1813898618
 GameObject:
@@ -3049,7 +3049,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -3063,7 +3063,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -3186,7 +3186,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -3387,7 +3387,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!4 &2089709377 stripped
 Transform:
@@ -3436,7 +3436,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1fdeca57aba5444292698f7040b8a9dd, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OutputModeManager
   defaultMode: 0
   logSelectedMode: 1
