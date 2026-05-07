@@ -222,7 +222,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &93358268
 GameObject:
@@ -282,7 +282,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 1813898620}
   Delay: 0
@@ -294,6 +294,38 @@ MonoBehaviour:
   avatarRootOffset: {x: 0, y: 0, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
+  overrideAvatarMaterials: 1
+  avatarMaterial: {fileID: 2100000, guid: 306f9c8100d2412d81fd7bb6de9b3ab4, type: 2}
+  fallbackAvatarColor: {r: 1, g: 1, b: 1, a: 1}
+  enableAvatarGlitch: 1
+  glitchIntervalRange: {x: 0.5, y: 1.2}
+  videoGlitchDurationRange: {x: 0.28, y: 0.75}
+  glitchFlickerRate: 30
+  glitchFrameDropChance: 0.28
+  useGlitchTexture: 1
+  glitchTexture: {fileID: 8400000, guid: 75c66af96cbcddb42a563283665a1d12, type: 2}
+  invertGlitchTexture: 1
+  videoGlitchChance: 0.75
+  tintGlitchTextureWithColor: 0
+  glitchTextureTint: {r: 1, g: 1, b: 1, a: 1}
+  useMeshGlitch: 1
+  meshGlitchChance: 0.25
+  suppressMeshGlitchInCollectiveSlotCameras: 1
+  collectiveSlotCameraRootPrefix: FragmentSlot_C
+  meshGlitchEnterFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchHoldDurationRange: {x: 0.8, y: 1.6}
+  meshGlitchExitFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchLineColor: {r: 1, g: 1, b: 1, a: 1}
+  meshGlitchSolidAlpha: 0.18
+  meshGlitchScaleBoost: 1
+  meshGlitchNormalOffset: 0.01
+  meshGlitchBottomTrim: 0.025
+  maxMeshGlitchEdgesPerRenderer: 900
+  randomizeMeshGlitchEdges: 1
+  meshGlitchFullEdgeCount: 12000
+  meshGlitchReducedChance: 0.25
+  meshGlitchReducedEdgeCountOptions: 8403000008070000100e0000
+  meshGlitchRefreshRate: 18
 --- !u!4 &99822390
 Transform:
   m_ObjectHideFlags: 0
@@ -512,7 +544,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
@@ -635,7 +667,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &453095663
 GameObject:
@@ -664,7 +696,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 586106501}
   Delay: 0
@@ -676,6 +708,38 @@ MonoBehaviour:
   avatarRootOffset: {x: 0, y: 0, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
+  overrideAvatarMaterials: 1
+  avatarMaterial: {fileID: 2100000, guid: 306f9c8100d2412d81fd7bb6de9b3ab4, type: 2}
+  fallbackAvatarColor: {r: 1, g: 1, b: 1, a: 1}
+  enableAvatarGlitch: 1
+  glitchIntervalRange: {x: 0.5, y: 1.2}
+  videoGlitchDurationRange: {x: 0.28, y: 0.75}
+  glitchFlickerRate: 30
+  glitchFrameDropChance: 0.28
+  useGlitchTexture: 1
+  glitchTexture: {fileID: 8400000, guid: 75c66af96cbcddb42a563283665a1d12, type: 2}
+  invertGlitchTexture: 1
+  videoGlitchChance: 0.75
+  tintGlitchTextureWithColor: 0
+  glitchTextureTint: {r: 1, g: 1, b: 1, a: 1}
+  useMeshGlitch: 1
+  meshGlitchChance: 0.25
+  suppressMeshGlitchInCollectiveSlotCameras: 1
+  collectiveSlotCameraRootPrefix: FragmentSlot_C
+  meshGlitchEnterFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchHoldDurationRange: {x: 0.8, y: 1.6}
+  meshGlitchExitFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchLineColor: {r: 1, g: 1, b: 1, a: 1}
+  meshGlitchSolidAlpha: 0.18
+  meshGlitchScaleBoost: 1
+  meshGlitchNormalOffset: 0.01
+  meshGlitchBottomTrim: 0.025
+  maxMeshGlitchEdgesPerRenderer: 900
+  randomizeMeshGlitchEdges: 1
+  meshGlitchFullEdgeCount: 12000
+  meshGlitchReducedChance: 0.25
+  meshGlitchReducedEdgeCountOptions: 8403000008070000100e0000
+  meshGlitchRefreshRate: 18
 --- !u!4 &453095665
 Transform:
   m_ObjectHideFlags: 0
@@ -843,7 +907,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -970,7 +1034,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -1095,7 +1159,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -1109,7 +1173,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -1226,7 +1290,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -1240,7 +1304,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -1294,7 +1358,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 555738065}
   Delay: 0
@@ -1306,6 +1370,38 @@ MonoBehaviour:
   avatarRootOffset: {x: 0, y: 0, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
+  overrideAvatarMaterials: 1
+  avatarMaterial: {fileID: 2100000, guid: 306f9c8100d2412d81fd7bb6de9b3ab4, type: 2}
+  fallbackAvatarColor: {r: 1, g: 1, b: 1, a: 1}
+  enableAvatarGlitch: 1
+  glitchIntervalRange: {x: 0.5, y: 1.2}
+  videoGlitchDurationRange: {x: 0.28, y: 0.75}
+  glitchFlickerRate: 30
+  glitchFrameDropChance: 0.28
+  useGlitchTexture: 1
+  glitchTexture: {fileID: 8400000, guid: 75c66af96cbcddb42a563283665a1d12, type: 2}
+  invertGlitchTexture: 1
+  videoGlitchChance: 0.75
+  tintGlitchTextureWithColor: 0
+  glitchTextureTint: {r: 1, g: 1, b: 1, a: 1}
+  useMeshGlitch: 1
+  meshGlitchChance: 0.25
+  suppressMeshGlitchInCollectiveSlotCameras: 1
+  collectiveSlotCameraRootPrefix: FragmentSlot_C
+  meshGlitchEnterFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchHoldDurationRange: {x: 0.8, y: 1.6}
+  meshGlitchExitFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchLineColor: {r: 1, g: 1, b: 1, a: 1}
+  meshGlitchSolidAlpha: 0.18
+  meshGlitchScaleBoost: 1
+  meshGlitchNormalOffset: 0.01
+  meshGlitchBottomTrim: 0.025
+  maxMeshGlitchEdgesPerRenderer: 900
+  randomizeMeshGlitchEdges: 1
+  meshGlitchFullEdgeCount: 12000
+  meshGlitchReducedChance: 0.25
+  meshGlitchReducedEdgeCountOptions: 8403000008070000100e0000
+  meshGlitchRefreshRate: 18
 --- !u!4 &640144073
 Transform:
   m_ObjectHideFlags: 0
@@ -1330,7 +1426,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &683087187
 GameObject:
@@ -1359,7 +1455,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fd386b5c3a8d3554083a1c0c083c036c, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentController
   fixedSoloSlots:
   - {fileID: 2039359057}
@@ -1464,7 +1560,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!114 &693888319 stripped
 MonoBehaviour:
@@ -1475,7 +1571,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!114 &807533423 stripped
 MonoBehaviour:
@@ -1486,7 +1582,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &832031586
 GameObject:
@@ -1518,7 +1614,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -1642,7 +1738,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_IsGlobal: 1
   priority: 0
@@ -1787,7 +1883,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -1801,7 +1897,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -1954,7 +2050,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -1976,7 +2072,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -2007,7 +2103,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 885882843}
   Delay: 0
@@ -2019,6 +2115,38 @@ MonoBehaviour:
   avatarRootOffset: {x: 0, y: 0, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
+  overrideAvatarMaterials: 1
+  avatarMaterial: {fileID: 2100000, guid: 306f9c8100d2412d81fd7bb6de9b3ab4, type: 2}
+  fallbackAvatarColor: {r: 1, g: 1, b: 1, a: 1}
+  enableAvatarGlitch: 1
+  glitchIntervalRange: {x: 0.5, y: 1.2}
+  videoGlitchDurationRange: {x: 0.28, y: 0.75}
+  glitchFlickerRate: 30
+  glitchFrameDropChance: 0.28
+  useGlitchTexture: 1
+  glitchTexture: {fileID: 8400000, guid: 75c66af96cbcddb42a563283665a1d12, type: 2}
+  invertGlitchTexture: 1
+  videoGlitchChance: 0.75
+  tintGlitchTextureWithColor: 0
+  glitchTextureTint: {r: 1, g: 1, b: 1, a: 1}
+  useMeshGlitch: 1
+  meshGlitchChance: 0.25
+  suppressMeshGlitchInCollectiveSlotCameras: 1
+  collectiveSlotCameraRootPrefix: FragmentSlot_C
+  meshGlitchEnterFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchHoldDurationRange: {x: 0.8, y: 1.6}
+  meshGlitchExitFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchLineColor: {r: 1, g: 1, b: 1, a: 1}
+  meshGlitchSolidAlpha: 0.18
+  meshGlitchScaleBoost: 1
+  meshGlitchNormalOffset: 0.01
+  meshGlitchBottomTrim: 0.025
+  maxMeshGlitchEdgesPerRenderer: 900
+  randomizeMeshGlitchEdges: 1
+  meshGlitchFullEdgeCount: 12000
+  meshGlitchReducedChance: 0.25
+  meshGlitchReducedEdgeCountOptions: 8403000008070000100e0000
+  meshGlitchRefreshRate: 18
 --- !u!4 &950658671
 Transform:
   m_ObjectHideFlags: 0
@@ -2061,7 +2189,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 75adbe8e57e41b340944c4a2c29469bc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::BackgroundStreamController
   tokenPrefab: {fileID: 652933647693811844, guid: af3005c3ab629ce4ca8907a2c13b8d12, type: 3}
   beatLane: {fileID: 537983054}
@@ -2146,7 +2274,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31b59419f1fa149d486ae127a3b82df7, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 929797343}
   Delay: 0
@@ -2158,6 +2286,38 @@ MonoBehaviour:
   avatarRootOffset: {x: 0, y: 0, z: -2}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
+  overrideAvatarMaterials: 1
+  avatarMaterial: {fileID: 2100000, guid: 306f9c8100d2412d81fd7bb6de9b3ab4, type: 2}
+  fallbackAvatarColor: {r: 1, g: 1, b: 1, a: 1}
+  enableAvatarGlitch: 1
+  glitchIntervalRange: {x: 0.5, y: 1.2}
+  videoGlitchDurationRange: {x: 0.28, y: 0.75}
+  glitchFlickerRate: 30
+  glitchFrameDropChance: 0.28
+  useGlitchTexture: 1
+  glitchTexture: {fileID: 8400000, guid: 75c66af96cbcddb42a563283665a1d12, type: 2}
+  invertGlitchTexture: 1
+  videoGlitchChance: 0.75
+  tintGlitchTextureWithColor: 0
+  glitchTextureTint: {r: 1, g: 1, b: 1, a: 1}
+  useMeshGlitch: 1
+  meshGlitchChance: 0.25
+  suppressMeshGlitchInCollectiveSlotCameras: 1
+  collectiveSlotCameraRootPrefix: FragmentSlot_C
+  meshGlitchEnterFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchHoldDurationRange: {x: 0.8, y: 1.6}
+  meshGlitchExitFlickerDurationRange: {x: 0.08, y: 0.16}
+  meshGlitchLineColor: {r: 1, g: 1, b: 1, a: 1}
+  meshGlitchSolidAlpha: 0.18
+  meshGlitchScaleBoost: 2
+  meshGlitchNormalOffset: 0.01
+  meshGlitchBottomTrim: 0
+  maxMeshGlitchEdgesPerRenderer: 900
+  randomizeMeshGlitchEdges: 1
+  meshGlitchFullEdgeCount: 12000
+  meshGlitchReducedChance: 0.25
+  meshGlitchReducedEdgeCountOptions: 8403000008070000100e0000
+  meshGlitchRefreshRate: 18
 --- !u!1 &1148717907
 GameObject:
   m_ObjectHideFlags: 0
@@ -2187,7 +2347,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -2322,7 +2482,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 04793259141e9f34781d331eda430203, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::SlotConnectionRenderer
   controller: {fileID: 683087188}
   lineMaterial: {fileID: 2100000, guid: 30647201937e05246b726da81ad4f66b, type: 2}
@@ -2475,7 +2635,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -2604,7 +2764,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -2843,7 +3003,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!4 &1571255854 stripped
 Transform:
@@ -2859,7 +3019,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!1 &1813898618
 GameObject:
@@ -2889,7 +3049,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cc60ff4426604a6fb0304ad96427164, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   server: {fileID: 0}
   BufferSize: 101
@@ -2903,7 +3063,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a60ef44a3d8e49bc9030f4c3491a395, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   useCSV: 0
   csvFilePath: Assets/CSV/houserave_keypoints.csv
@@ -3026,7 +3186,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a3ad86c5f98b6949be219cc4ca0e0b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FaceCameraBillboard
   targetCamera: {fileID: 0}
   reverseForward: 1
@@ -3227,13 +3387,96 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bdcb77e977db654da4cc3e41e50de00, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::FragmentSlot
 --- !u!4 &2089709377 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7681859017346664057, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
   m_PrefabInstance: {fileID: 524455150}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2100000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2100000002}
+  - component: {fileID: 2100000003}
+  m_Layer: 0
+  m_Name: OutputModeManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2100000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2100000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fdeca57aba5444292698f7040b8a9dd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::OutputModeManager
+  defaultMode: 0
+  logSelectedMode: 1
+  useRootNameFallback: 1
+  waterfallRootNames:
+  - BackgroundRoot
+  sharedRootNames:
+  - Main Camera
+  - Directional Light
+  - Global Volume
+  - OutputModeManager
+  profiles:
+  - mode: 0
+    width: 1280
+    height: 800
+    fullscreen: 0
+    applyResolution: 1
+    objectsToEnable: []
+    objectsToDisable: []
+  - mode: 1
+    width: 1280
+    height: 800
+    fullscreen: 0
+    applyResolution: 1
+    objectsToEnable: []
+    objectsToDisable: []
+  - mode: 2
+    width: 1024
+    height: 768
+    fullscreen: 0
+    applyResolution: 1
+    objectsToEnable: []
+    objectsToDisable: []
+  - mode: 3
+    width: 1280
+    height: 800
+    fullscreen: 0
+    applyResolution: 1
+    objectsToEnable: []
+    objectsToDisable: []
 --- !u!4 &2110883603 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6631604983150767943, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
@@ -3339,89 +3582,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 3f7f907c8f3ac0c4a895d2d2fb5f3385, type: 3}
---- !u!1 &2100000001
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2100000002}
-  - component: {fileID: 2100000003}
-  m_Layer: 0
-  m_Name: OutputModeManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2100000002
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2100000001}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2100000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2100000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fdeca57aba5444292698f7040b8a9dd, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::OutputModeManager
-  defaultMode: 0
-  logSelectedMode: 1
-  useRootNameFallback: 1
-  waterfallRootNames:
-  - BackgroundRoot
-  sharedRootNames:
-  - Main Camera
-  - Directional Light
-  - Global Volume
-  - OutputModeManager
-  profiles:
-  - mode: 0
-    width: 1280
-    height: 800
-    fullscreen: 0
-    applyResolution: 1
-    objectsToEnable: []
-    objectsToDisable: []
-  - mode: 1
-    width: 1280
-    height: 800
-    fullscreen: 0
-    applyResolution: 1
-    objectsToEnable: []
-    objectsToDisable: []
-  - mode: 2
-    width: 1024
-    height: 768
-    fullscreen: 0
-    applyResolution: 1
-    objectsToEnable: []
-    objectsToDisable: []
-  - mode: 3
-    width: 1280
-    height: 800
-    fullscreen: 0
-    applyResolution: 1
-    objectsToEnable: []
-    objectsToDisable: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
