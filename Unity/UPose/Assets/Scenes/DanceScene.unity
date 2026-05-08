@@ -2173,6 +2173,7 @@ GameObject:
   - component: {fileID: 981538048}
   - component: {fileID: 981538047}
   - component: {fileID: 981538049}
+  - component: {fileID: 981538050}
   m_Layer: 0
   m_Name: BackgroundRoot
   m_TagString: Untagged
@@ -2272,7 +2273,7 @@ MonoBehaviour:
   pulseDecay: 1.8
   accentDecay: 2.5
   horizontalUnitCount: 90
-  horizontalRowCount: 10
+  horizontalRowCount: 3
   horizontalWidthRange: {x: 0.35, y: 2.4}
   horizontalShortWidthRange: {x: 0.12, y: 0.65}
   horizontalLongWidthRange: {x: 2.2, y: 5.4}
@@ -2284,6 +2285,7 @@ MonoBehaviour:
   horizontalStepInterval: 0.12
   horizontalGridJitter: 0.06
   horizontalLanePadding: 0.2
+  horizontalLanePaddingResponseSpeed: 10
   horizontalBarcodeAlignment: 1
   horizontalUnitsPerRow: 96
   horizontalBarcodeGapRange: {x: 0.012, y: 0.055}
@@ -2295,6 +2297,38 @@ MonoBehaviour:
   horizontalResetProbability: 0.008
   horizontalShowLaneGuides: 1
   horizontalFrameInset: 0.08
+  horizontalShowDataLabels: 1
+  horizontalLabelPoolSize: 48
+  horizontalLabelSlotStep: 18
+  horizontalLabelRectEndOffset: 0.12
+  horizontalLabelBaselineOffset: 0.18
+  horizontalUseFixedLabelBaselines: 1
+  horizontalTopLabelBaselineY: 1.25
+  horizontalBottomLabelBaselineY: -1.25
+  horizontalLabelFontSize: 1
+  horizontalLabelAlpha: 0.78
+  horizontalLabelColor: {r: 0.86, g: 0.86, b: 0.86, a: 1}
+  horizontalLabelAccentColor: {r: 0, g: 1, b: 0.82, a: 1}
+  horizontalLabelAccentChance: 0.18
+  horizontalUseAudioDataTokens: 1
+  horizontalAudioDataTokenChance: 0.42
+  audioReactiveSource: {fileID: 0}
+  horizontalTopLabelTokens:
+  - CLK
+  - SYNC
+  - A:064
+  - PK91
+  - GATE
+  - 0110
+  - CV7E
+  horizontalBottomLabelTokens:
+  - SIG
+  - H:037
+  - AMP72
+  - 0x3F
+  - TR:12
+  - BUS4
+  - 1001
   verticalStreamCount: 140
   verticalColumnCount: 96
   segmentsPerStreamMin: 3
@@ -2318,6 +2352,55 @@ MonoBehaviour:
   verticalFrameInset: 0.08
   meshRootName: WaterfallRuntimeMeshes
   liveApplyInspectorChanges: 1
+  loadSavedSettingsOnAwake: 1
+  savedSettingsFileName: WaterfallB_ControllerSettings.json
+--- !u!114 &981538050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981538046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9babd5171ef54009a41ca870dd1992b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterfallAudioReactiveController
+  waterfall: {fileID: 981538049}
+  onlyAffectWaterfallB: 1
+  inputMode: 0
+  microphoneDeviceName: BlackHole 2ch
+  fallbackToDefaultMicrophone: 1
+  audioSource: {fileID: 0}
+  microphoneSampleRate: 48000
+  microphoneLoopSeconds: 1
+  sampleWindow: 1024
+  rmsFloor: 0.01
+  rmsCeil: 0.18
+  smoothing: 0.82
+  peakDecay: 0.92
+  controlLanePadding: 1
+  lanePaddingMin: 0.18
+  lanePaddingMax: 1.35
+  controlIntensity: 1
+  intensityMin: 0.62
+  intensityMax: 1.22
+  triggerPulse: 1
+  transientThreshold: 0.16
+  transientCooldown: 0.09
+  pulseAmount: 0.85
+  triggerAccent: 1
+  highBandStart: 0.48
+  highRatioThreshold: 0.34
+  accentAmount: 0.55
+  currentRms: 0
+  normalizedRms: 0
+  smoothedRms: 0
+  peakRms: 0
+  highRatio: 0
+  transientAmount: 0
+  loadSavedSettingsOnAwake: 1
+  savedSettingsFileName: WaterfallB_AudioReactiveSettings.json
 --- !u!1 &992788407
 GameObject:
   m_ObjectHideFlags: 0

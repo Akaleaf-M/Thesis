@@ -1,0 +1,140 @@
+{
+    "preset": 1,
+    "visualMode": 0,
+    "worldWidth": 10.239999771118164,
+    "worldHeight": 7.679999828338623,
+    "zOffset": 0.0,
+    "globalIntensity": 0.949999988079071,
+    "speedMultiplier": 1.0,
+    "densityMultiplier": 1.0,
+    "accentProbability": 0.02199999988079071,
+    "glitchProbability": 0.03500000014901161,
+    "pulseProbability": 0.05000000074505806,
+    "defaultColor": {
+        "r": 0.8600000143051148,
+        "g": 0.8600000143051148,
+        "b": 0.8600000143051148,
+        "a": 1.0
+    },
+    "dimColor": {
+        "r": 0.41999998688697817,
+        "g": 0.41999998688697817,
+        "b": 0.41999998688697817,
+        "a": 1.0
+    },
+    "brightColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
+    "accentColor": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 1.0
+    },
+    "secondaryAccentColor": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
+    "baseAlpha": 0.8999999761581421,
+    "showCalibrationFrame": true,
+    "scaffoldAlphaMultiplier": 0.3499999940395355,
+    "pulseDecay": 1.7999999523162842,
+    "accentDecay": 2.5,
+    "horizontalUnitCount": 540,
+    "horizontalRowCount": 3,
+    "horizontalWidthRange": {
+        "x": 0.3499999940395355,
+        "y": 1.399999976158142
+    },
+    "horizontalShortWidthRange": {
+        "x": 0.07999999821186066,
+        "y": 0.3199999928474426
+    },
+    "horizontalLongWidthRange": {
+        "x": 1.2999999523162842,
+        "y": 3.799999952316284
+    },
+    "horizontalHeightRange": {
+        "x": 0.054999999701976779,
+        "y": 0.2199999988079071
+    },
+    "horizontalStripeWidthRange": {
+        "x": 0.009999999776482582,
+        "y": 0.06499999761581421
+    },
+    "horizontalStripeHeightRange": {
+        "x": 0.5600000023841858,
+        "y": 0.9200000166893005
+    },
+    "horizontalSpeedRange": {
+        "x": 1.7999999523162842,
+        "y": 5.199999809265137
+    },
+    "horizontalUseSteppedMotion": false,
+    "horizontalStepInterval": 0.02500000037252903,
+    "horizontalGridJitter": 0.0020000000949949028,
+    "horizontalLanePadding": 0.7431387305259705,
+    "horizontalLanePaddingResponseSpeed": 10.0,
+    "horizontalBarcodeAlignment": true,
+    "horizontalUnitsPerRow": 180,
+    "horizontalBarcodeGapRange": {
+        "x": 0.006000000052154064,
+        "y": 0.026000000536441804
+    },
+    "horizontalOutlineProbability": 0.02500000037252903,
+    "horizontalStripeProbability": 0.9300000071525574,
+    "horizontalShortBarProbability": 0.03500000014901161,
+    "horizontalLongBarProbability": 0.02800000086426735,
+    "horizontalBlinkProbability": 0.02800000086426735,
+    "horizontalResetProbability": 0.009999999776482582,
+    "horizontalShowLaneGuides": true,
+    "horizontalFrameInset": 0.07999999821186066,
+    "horizontalShowDataLabels": true,
+    "horizontalLabelPoolSize": 48,
+    "horizontalLabelSlotStep": 18,
+    "horizontalLabelRectEndOffset": 0.11999999731779099,
+    "horizontalLabelBaselineOffset": 0.18000000715255738,
+    "horizontalUseFixedLabelBaselines": true,
+    "horizontalTopLabelBaselineY": 1.0,
+    "horizontalBottomLabelBaselineY": -1.0,
+    "horizontalLabelFontSize": 1.0,
+    "horizontalLabelAlpha": 0.7799999713897705,
+    "horizontalLabelColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
+    "horizontalLabelAccentColor": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.8199999928474426,
+        "a": 1.0
+    },
+    "horizontalLabelAccentChance": 0.18000000715255738,
+    "horizontalUseAudioDataTokens": true,
+    "horizontalAudioDataTokenChance": 0.41999998688697817,
+    "horizontalTopLabelTokens": [
+        "CLK",
+        "SYNC",
+        "A:064",
+        "PK91",
+        "GATE",
+        "0110",
+        "CV7E"
+    ],
+    "horizontalBottomLabelTokens": [
+        "SIG",
+        "H:037",
+        "AMP72",
+        "0x3F",
+        "TR:12",
+        "BUS4",
+        "1001"
+    ]
+}

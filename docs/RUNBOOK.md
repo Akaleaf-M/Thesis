@@ -441,11 +441,14 @@ Current waterfall mode expectations:
 
 Current `WaterfallB` visual direction:
 
-- Dense barcode-like rows.
+- `WaterfallB` is now a formal showable preset.
+- Three dense barcode-like horizontal rows.
 - Mostly vertical stripe rectangles moving horizontally.
 - Occasional long horizontal rectangles as signal overlays.
 - White / gray is the main visual language.
 - Cyan / green are small live-signal accents only.
+- Top and bottom data labels sit on fixed horizontal baselines.
+- System / VCV audio can drive lane padding and intensity through `BlackHole 2ch`.
 
 Useful `WaterfallController` controls:
 
@@ -464,13 +467,57 @@ Useful `WaterfallController` controls:
 | `horizontalStripeProbability` | Ratio of vertical barcode stripe units |
 | `horizontalStripeWidthRange` | Width range of barcode stripe units |
 | `horizontalStripeHeightRange` | Height range of barcode stripe units |
+| `horizontalLanePadding` | Target padding between the three horizontal lanes; current clamp is `0-2` |
+| `horizontalLanePaddingResponseSpeed` | Visual response speed for lane padding changes; current tuned value is `20` |
 | `horizontalLongBarProbability` | Chance of occasional X-axis long signal bars |
 | `horizontalSpeedRange` | Per-unit speed range for horizontal mode |
 | `horizontalUseSteppedMotion` | Optional stepped / test-signal movement; current default is continuous movement |
+| `horizontalShowDataLabels` | Enables top / bottom data labels |
+| `horizontalUseFixedLabelBaselines` | Keeps labels on fixed horizontal lines instead of following barcode row movement |
+| `horizontalTopLabelBaselineY` | Top label baseline Y |
+| `horizontalBottomLabelBaselineY` | Bottom label baseline Y |
+| `horizontalUseAudioDataTokens` | Allows labels to include audio-derived values |
 
-Future VCV / rhythm control is not connected yet. `WaterfallController` currently exposes these methods for future integration:
+`WaterfallB` audio-reactive setup:
+
+1. Install `BlackHole 2ch`.
+2. In macOS Audio MIDI Setup, create a Multi-Output Device containing `BlackHole 2ch` and the speaker / audio interface used for playback.
+3. Set VCV, Spotify, or other system test audio to output to that Multi-Output Device.
+4. In Unity, keep `WaterfallAudioReactiveController.inputMode = Microphone`.
+5. Set `WaterfallAudioReactiveController.microphoneDeviceName = BlackHole 2ch`.
+6. Enter Play Mode in `WaterfallB`.
+
+Current tuned `WaterfallAudioReactiveController` test values:
+
+| Parameter | Current tuned value | Notes |
+| --- | --- | --- |
+| `rmsFloor` | `0.06` | Input level floor for the current testing environment |
+| `rmsCeil` | `0.07` | Input level ceiling for the current testing environment |
+| `smoothing` | `0` | Immediate response during current tests |
+| `lanePaddingMin` / `lanePaddingMax` | Inspector-adjusted, within `0-2` | May need exhibition-room retuning |
+| `responseSpeed` on `WaterfallController` | `horizontalLanePaddingResponseSpeed = 20` | Controls visual catch-up speed |
+
+Important:
+
+- `WaterfallB` does not use OSC / UDP / MIDI messages from VCV.
+- `WaterfallB` listens to audio routed through `BlackHole 2ch`.
+- This avoids conflicts with MediaPipe / UPose ports `52733-52736`, `52833-52836`, and `53000`.
+- For final external playback, prefer one macOS Multi-Output Device containing `BlackHole 2ch` plus the actual speaker / audio interface, rather than maintaining separate VCV audio output modules.
+
+Play Mode tuning save/load:
+
+- `WaterfallController` has context menu `Save Current Settings`.
+- `WaterfallAudioReactiveController` has context menu `Save Current Settings`.
+- Saved files are written to:
+  - `Unity/UPose/Assets/StreamingAssets/WaterfallB_ControllerSettings.json`
+  - `Unity/UPose/Assets/StreamingAssets/WaterfallB_AudioReactiveSettings.json`
+- With `loadSavedSettingsOnAwake` enabled, those files are loaded on the next Play Mode run after the preset is applied.
+- This is the current way to preserve good Inspector tuning found during Play Mode.
+
+`WaterfallA` remains the intended place for direct VCV / rhythm control. `WaterfallController` currently exposes these methods for future integration:
 
 ```csharp
+SetLanePadding(float value)
 SetIntensity(float value)
 SetSpeedMultiplier(float value)
 SetDensityMultiplier(float value)

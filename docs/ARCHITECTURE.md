@@ -547,14 +547,18 @@ Current preset mapping:
 
 `WaterfallController` can read `OutputModeManager.CurrentMode` when `useOutputModeManagerPreset` is enabled, then select the matching preset.
 
-Current `TestPatternHorizontal` direction:
+Current `TestPatternHorizontal` / `WaterfallB` direction:
 
+- `WaterfallB` is now a formal, showable preset.
 - Mostly black background with white / light gray rectangular units.
-- Barcode-like rows / lanes, currently using strict row and slot alignment.
+- Three barcode-like horizontal lanes with top / center / bottom placement.
 - Most elements are vertical stripe units moving horizontally.
 - Occasional X-axis long rectangles are allowed as signal overlays.
 - Green / cyan are only small accent signals, controlled by `accentProbability`, `accentColor`, and `secondaryAccentColor`.
 - Movement is continuous by default; stepped movement can be re-enabled with `horizontalUseSteppedMotion`.
+- `horizontalLanePadding` is audio-reactive and clamped to `0-2`.
+- `horizontalLanePaddingResponseSpeed` is currently tuned to `20`.
+- Top and bottom data labels are rendered on fixed horizontal baselines, not attached vertically to the moving barcode rows.
 
 Important current Inspector parameters for `TestPatternHorizontal`:
 
@@ -564,6 +568,8 @@ Important current Inspector parameters for `TestPatternHorizontal`:
 - `horizontalStripeProbability`
 - `horizontalStripeWidthRange`
 - `horizontalStripeHeightRange`
+- `horizontalLanePadding`
+- `horizontalLanePaddingResponseSpeed`
 - `horizontalLongBarProbability`
 - `horizontalLongWidthRange`
 - `horizontalSpeedRange`
@@ -572,17 +578,69 @@ Important current Inspector parameters for `TestPatternHorizontal`:
 - `accentProbability`
 - `glitchProbability`
 - `pulseProbability`
+- `horizontalShowDataLabels`
+- `horizontalUseFixedLabelBaselines`
+- `horizontalTopLabelBaselineY`
+- `horizontalBottomLabelBaselineY`
+- `horizontalUseAudioDataTokens`
 
-Current `DataWaterfallVertical` direction:
+`WaterfallB` has runtime text labels managed by `WaterfallController`:
+
+- Labels are created from a TextMeshPro runtime pool; no scene label objects are required.
+- Label tokens use a mixed 3-6 character vocabulary such as `CLK`, `SYNC`, `CV7E`, `0110`, `AMP72`, `PK91`, and `0x7E`.
+- Optional realtime audio-data tokens are generated from `WaterfallAudioReactiveController`, including RMS / peak / high-ratio / transient-derived values.
+- Default label color is white, with occasional cyan / green accent labels.
+- Current label alignment keeps top and bottom label rows on fixed baselines while `x` position follows selected rectangle ends.
+
+`WaterfallB` audio-reactive control is handled by:
+
+- `Unity/UPose/Assets/Scripts/WaterfallAudioReactiveController.cs`
+
+Current audio path:
+
+```text
+VCV / system audio
+-> macOS Multi-Output Device
+-> BlackHole 2ch
+-> Unity Microphone input
+-> WaterfallAudioReactiveController
+-> WaterfallController
+
+same Multi-Output Device
+-> speakers / audio interface
+```
+
+Important behavior:
+
+- `WaterfallB` does not receive VCV control messages directly.
+- For installation testing, VCV and other system audio can affect `WaterfallB` by outputting to a macOS Multi-Output Device that includes `BlackHole 2ch`.
+- `WaterfallAudioReactiveController.inputMode` defaults to `Microphone`.
+- `microphoneDeviceName` defaults to `BlackHole 2ch`.
+- `RMS` controls `SetLanePadding(...)` and `SetIntensity(...)`.
+- Transient changes can call `TriggerPulse(...)`.
+- High-frequency ratio can call `TriggerAccent(...)`.
+- The current tuned test values are `rmsFloor = 0.06`, `rmsCeil = 0.07`, and `smoothing = 0`.
+
+Runtime settings can be saved from Play Mode:
+
+- `WaterfallController` context menu: `Save Current Settings`
+- `WaterfallAudioReactiveController` context menu: `Save Current Settings`
+- Saved files:
+  - `Unity/UPose/Assets/StreamingAssets/WaterfallB_ControllerSettings.json`
+  - `Unity/UPose/Assets/StreamingAssets/WaterfallB_AudioReactiveSettings.json`
+- `loadSavedSettingsOnAwake` lets those JSON files override preset defaults on the next Play Mode run.
+
+Current `DataWaterfallVertical` / `WaterfallA` direction:
 
 - Many small white / gray rectangular segments arranged into streams / columns.
 - Vertical falling / cascade motion.
 - Small cyan / green accents may appear as live signal pulses.
-- Intended as a future rhythm-reactive data-waterfall surface.
+- Intended as the next direct VCV-controlled data-waterfall surface.
 
-Future VCV / rhythm control is not implemented yet. `WaterfallController` currently keeps public control methods as a future integration surface:
+Direct VCV / rhythm control is still intended for `WaterfallA`, not `WaterfallB`. `WaterfallController` currently keeps public control methods as the future integration surface:
 
 ```csharp
+SetLanePadding(float value)
 SetIntensity(float value)
 SetSpeedMultiplier(float value)
 SetDensityMultiplier(float value)

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using TMPro;
 using UnityEngine;
 
 public enum WaterfallPreset
@@ -67,8 +69,9 @@ public class WaterfallController : MonoBehaviour
     public bool horizontalUseSteppedMotion = false;
     public float horizontalStepInterval = 0.12f;
     public float horizontalGridJitter = 0.06f;
-    [Range(0f, 1.5f)]
+    [Range(0f, 2f)]
     public float horizontalLanePadding = 0.55f;
+    public float horizontalLanePaddingResponseSpeed = 20f;
     public bool horizontalBarcodeAlignment = true;
     public int horizontalUnitsPerRow = 96;
     public Vector2 horizontalBarcodeGapRange = new Vector2(0.012f, 0.055f);
@@ -80,6 +83,26 @@ public class WaterfallController : MonoBehaviour
     [Range(0f, 1f)] public float horizontalResetProbability = 0.008f;
     public bool horizontalShowLaneGuides = true;
     public float horizontalFrameInset = 0.08f;
+
+    [Header("TestPatternHorizontal Labels")]
+    public bool horizontalShowDataLabels = true;
+    public int horizontalLabelPoolSize = 48;
+    public int horizontalLabelSlotStep = 18;
+    public float horizontalLabelRectEndOffset = 0.12f;
+    public float horizontalLabelBaselineOffset = 0.18f;
+    public bool horizontalUseFixedLabelBaselines = true;
+    public float horizontalTopLabelBaselineY = 1.25f;
+    public float horizontalBottomLabelBaselineY = -1.25f;
+    public float horizontalLabelFontSize = 0.18f;
+    [Range(0f, 1f)] public float horizontalLabelAlpha = 0.78f;
+    public Color horizontalLabelColor = Color.white;
+    public Color horizontalLabelAccentColor = new Color(0f, 1f, 0.82f, 1f);
+    [Range(0f, 1f)] public float horizontalLabelAccentChance = 0.18f;
+    public bool horizontalUseAudioDataTokens = true;
+    [Range(0f, 1f)] public float horizontalAudioDataTokenChance = 0.42f;
+    public WaterfallAudioReactiveController audioReactiveSource;
+    public string[] horizontalTopLabelTokens = new string[] { "CLK", "SYNC", "GATE", "CV7E", "A7", "C0", "F2", "0110", "0x3F", "BUS4", "IN02", "OUT1" };
+    public string[] horizontalBottomLabelTokens = new string[] { "SIG", "AMP72", "TR12", "H037", "PK91", "CV", "BUF", "ERR", "1001", "0x7E", "LOW6", "HI03" };
 
     [Header("DataWaterfallVertical")]
     public int verticalStreamCount = 140;
@@ -108,6 +131,10 @@ public class WaterfallController : MonoBehaviour
     public string meshRootName = "WaterfallRuntimeMeshes";
     public bool liveApplyInspectorChanges = true;
 
+    [Header("Saved Settings")]
+    public bool loadSavedSettingsOnAwake = true;
+    public string savedSettingsFileName = "WaterfallB_ControllerSettings.json";
+
     private const int DimGroup = 0;
     private const int DefaultGroup = 1;
     private const int BrightGroup = 2;
@@ -131,10 +158,21 @@ public class WaterfallController : MonoBehaviour
         public float width;
         public float height;
         public float speed;
+        public int row;
+        public int slot;
         public int group;
         public bool outline;
         public bool visible;
         public float stepTimer;
+    }
+
+    private class DataLabel
+    {
+        public TextMeshPro text;
+        public Transform transform;
+        public Color color;
+        public float nextTokenTime;
+        public bool active;
     }
 
     private class VerticalSegment
@@ -162,9 +200,11 @@ public class WaterfallController : MonoBehaviour
     private MeshLayer[] fillLayers;
     private HorizontalUnit[] horizontalUnits;
     private VerticalStream[] verticalStreams;
+    private DataLabel[] dataLabels;
     private bool isGlitching;
     private float glitchTimer;
     private float glitchDuration;
+    private float renderedHorizontalLanePadding;
     private int lastHorizontalUnitCount;
     private int lastHorizontalRowCount;
     private int lastHorizontalUnitsPerRow;
@@ -184,6 +224,11 @@ public class WaterfallController : MonoBehaviour
         if (applyPresetOnStart)
             ApplyPreset();
 
+        if (loadSavedSettingsOnAwake)
+            LoadSavedSettings();
+
+        ClampControlRanges();
+        renderedHorizontalLanePadding = horizontalLanePadding;
         InitializeRuntime();
     }
 
@@ -191,6 +236,9 @@ public class WaterfallController : MonoBehaviour
     {
         CleanupLayers(lineLayers);
         CleanupLayers(fillLayers);
+
+        if (meshRoot != null)
+            Destroy(meshRoot.gameObject);
     }
 
     void Update()
@@ -200,6 +248,7 @@ public class WaterfallController : MonoBehaviour
 
         ClampControlRanges();
         RefreshRuntimeFromInspectorChanges();
+        UpdateRenderedControlValues();
         UpdateExternalControlDecay();
         UpdateGlitchState();
 
@@ -210,9 +259,11 @@ public class WaterfallController : MonoBehaviour
         {
             UpdateTestPatternHorizontal();
             RebuildTestPatternHorizontalMeshes();
+            UpdateHorizontalDataLabels();
         }
         else
         {
+            SetAllDataLabelsActive(false);
             UpdateDataWaterfallVertical();
             RebuildDataWaterfallVerticalMeshes();
         }
@@ -295,6 +346,20 @@ public class WaterfallController : MonoBehaviour
         horizontalLongBarProbability = 0.028f;
         horizontalBlinkProbability = 0.028f;
         horizontalResetProbability = 0.01f;
+        horizontalShowDataLabels = true;
+        horizontalLabelPoolSize = 48;
+        horizontalLabelSlotStep = 18;
+        horizontalLabelRectEndOffset = 0.12f;
+        horizontalLabelBaselineOffset = 0.18f;
+        horizontalUseFixedLabelBaselines = true;
+        horizontalTopLabelBaselineY = 1.25f;
+        horizontalBottomLabelBaselineY = -1.25f;
+        horizontalLabelFontSize = 0.18f;
+        horizontalLabelAlpha = 0.78f;
+        horizontalLabelColor = Color.white;
+        horizontalLabelAccentChance = 0.18f;
+        horizontalUseAudioDataTokens = true;
+        horizontalAudioDataTokenChance = 0.42f;
 
         if (!preserveInspectorLanePaddingOnPreset)
             horizontalLanePadding = WaterfallBLanePaddingPreset;
@@ -330,7 +395,7 @@ public class WaterfallController : MonoBehaviour
 
     public void SetLanePadding(float value)
     {
-        horizontalLanePadding = Mathf.Clamp(value, 0f, 1.5f);
+        horizontalLanePadding = Mathf.Clamp(value, 0f, 2f);
     }
 
     public void TriggerPulse(float amount)
@@ -355,7 +420,254 @@ public class WaterfallController : MonoBehaviour
 
     void ClampControlRanges()
     {
-        horizontalLanePadding = Mathf.Clamp(horizontalLanePadding, 0f, 1.5f);
+        horizontalLanePadding = Mathf.Clamp(horizontalLanePadding, 0f, 2f);
+    }
+
+    [ContextMenu("Save Current Settings")]
+    public void SaveCurrentSettings()
+    {
+        WaterfallControllerSettings settings = CaptureSettings();
+        string json = JsonUtility.ToJson(settings, true);
+        string path = GetSavedSettingsPath();
+        Directory.CreateDirectory(Path.GetDirectoryName(path));
+        File.WriteAllText(path, json);
+        Debug.Log($"[WaterfallController] Saved settings to {path}");
+    }
+
+    [ContextMenu("Load Saved Settings")]
+    public void LoadSavedSettings()
+    {
+        string path = GetSavedSettingsPath();
+        if (!File.Exists(path))
+            return;
+
+        string json = File.ReadAllText(path);
+        WaterfallControllerSettings settings = JsonUtility.FromJson<WaterfallControllerSettings>(json);
+        ApplySettings(settings);
+        ClampControlRanges();
+        Debug.Log($"[WaterfallController] Loaded settings from {path}");
+    }
+
+    string GetSavedSettingsPath()
+    {
+        return Path.Combine(Application.dataPath, "StreamingAssets", savedSettingsFileName);
+    }
+
+    WaterfallControllerSettings CaptureSettings()
+    {
+        return new WaterfallControllerSettings
+        {
+            preset = preset,
+            visualMode = visualMode,
+            worldWidth = worldWidth,
+            worldHeight = worldHeight,
+            zOffset = zOffset,
+            globalIntensity = globalIntensity,
+            speedMultiplier = speedMultiplier,
+            densityMultiplier = densityMultiplier,
+            accentProbability = accentProbability,
+            glitchProbability = glitchProbability,
+            pulseProbability = pulseProbability,
+            defaultColor = defaultColor,
+            dimColor = dimColor,
+            brightColor = brightColor,
+            accentColor = accentColor,
+            secondaryAccentColor = secondaryAccentColor,
+            baseAlpha = baseAlpha,
+            showCalibrationFrame = showCalibrationFrame,
+            scaffoldAlphaMultiplier = scaffoldAlphaMultiplier,
+            pulseDecay = pulseDecay,
+            accentDecay = accentDecay,
+            horizontalUnitCount = horizontalUnitCount,
+            horizontalRowCount = horizontalRowCount,
+            horizontalWidthRange = horizontalWidthRange,
+            horizontalShortWidthRange = horizontalShortWidthRange,
+            horizontalLongWidthRange = horizontalLongWidthRange,
+            horizontalHeightRange = horizontalHeightRange,
+            horizontalStripeWidthRange = horizontalStripeWidthRange,
+            horizontalStripeHeightRange = horizontalStripeHeightRange,
+            horizontalSpeedRange = horizontalSpeedRange,
+            horizontalUseSteppedMotion = horizontalUseSteppedMotion,
+            horizontalStepInterval = horizontalStepInterval,
+            horizontalGridJitter = horizontalGridJitter,
+            horizontalLanePadding = horizontalLanePadding,
+            horizontalLanePaddingResponseSpeed = horizontalLanePaddingResponseSpeed,
+            horizontalBarcodeAlignment = horizontalBarcodeAlignment,
+            horizontalUnitsPerRow = horizontalUnitsPerRow,
+            horizontalBarcodeGapRange = horizontalBarcodeGapRange,
+            horizontalOutlineProbability = horizontalOutlineProbability,
+            horizontalStripeProbability = horizontalStripeProbability,
+            horizontalShortBarProbability = horizontalShortBarProbability,
+            horizontalLongBarProbability = horizontalLongBarProbability,
+            horizontalBlinkProbability = horizontalBlinkProbability,
+            horizontalResetProbability = horizontalResetProbability,
+            horizontalShowLaneGuides = horizontalShowLaneGuides,
+            horizontalFrameInset = horizontalFrameInset,
+            horizontalShowDataLabels = horizontalShowDataLabels,
+            horizontalLabelPoolSize = horizontalLabelPoolSize,
+            horizontalLabelSlotStep = horizontalLabelSlotStep,
+            horizontalLabelRectEndOffset = horizontalLabelRectEndOffset,
+            horizontalLabelBaselineOffset = horizontalLabelBaselineOffset,
+            horizontalUseFixedLabelBaselines = horizontalUseFixedLabelBaselines,
+            horizontalTopLabelBaselineY = horizontalTopLabelBaselineY,
+            horizontalBottomLabelBaselineY = horizontalBottomLabelBaselineY,
+            horizontalLabelFontSize = horizontalLabelFontSize,
+            horizontalLabelAlpha = horizontalLabelAlpha,
+            horizontalLabelColor = horizontalLabelColor,
+            horizontalLabelAccentColor = horizontalLabelAccentColor,
+            horizontalLabelAccentChance = horizontalLabelAccentChance,
+            horizontalUseAudioDataTokens = horizontalUseAudioDataTokens,
+            horizontalAudioDataTokenChance = horizontalAudioDataTokenChance,
+            horizontalTopLabelTokens = horizontalTopLabelTokens,
+            horizontalBottomLabelTokens = horizontalBottomLabelTokens
+        };
+    }
+
+    void ApplySettings(WaterfallControllerSettings settings)
+    {
+        if (settings == null) return;
+
+        preset = settings.preset;
+        visualMode = settings.visualMode;
+        worldWidth = settings.worldWidth;
+        worldHeight = settings.worldHeight;
+        zOffset = settings.zOffset;
+        globalIntensity = settings.globalIntensity;
+        speedMultiplier = settings.speedMultiplier;
+        densityMultiplier = settings.densityMultiplier;
+        accentProbability = settings.accentProbability;
+        glitchProbability = settings.glitchProbability;
+        pulseProbability = settings.pulseProbability;
+        defaultColor = settings.defaultColor;
+        dimColor = settings.dimColor;
+        brightColor = settings.brightColor;
+        accentColor = settings.accentColor;
+        secondaryAccentColor = settings.secondaryAccentColor;
+        baseAlpha = settings.baseAlpha;
+        showCalibrationFrame = settings.showCalibrationFrame;
+        scaffoldAlphaMultiplier = settings.scaffoldAlphaMultiplier;
+        pulseDecay = settings.pulseDecay;
+        accentDecay = settings.accentDecay;
+        horizontalUnitCount = settings.horizontalUnitCount;
+        horizontalRowCount = settings.horizontalRowCount;
+        horizontalWidthRange = settings.horizontalWidthRange;
+        horizontalShortWidthRange = settings.horizontalShortWidthRange;
+        horizontalLongWidthRange = settings.horizontalLongWidthRange;
+        horizontalHeightRange = settings.horizontalHeightRange;
+        horizontalStripeWidthRange = settings.horizontalStripeWidthRange;
+        horizontalStripeHeightRange = settings.horizontalStripeHeightRange;
+        horizontalSpeedRange = settings.horizontalSpeedRange;
+        horizontalUseSteppedMotion = settings.horizontalUseSteppedMotion;
+        horizontalStepInterval = settings.horizontalStepInterval;
+        horizontalGridJitter = settings.horizontalGridJitter;
+        horizontalLanePadding = settings.horizontalLanePadding;
+        horizontalLanePaddingResponseSpeed = settings.horizontalLanePaddingResponseSpeed;
+        horizontalBarcodeAlignment = settings.horizontalBarcodeAlignment;
+        horizontalUnitsPerRow = settings.horizontalUnitsPerRow;
+        horizontalBarcodeGapRange = settings.horizontalBarcodeGapRange;
+        horizontalOutlineProbability = settings.horizontalOutlineProbability;
+        horizontalStripeProbability = settings.horizontalStripeProbability;
+        horizontalShortBarProbability = settings.horizontalShortBarProbability;
+        horizontalLongBarProbability = settings.horizontalLongBarProbability;
+        horizontalBlinkProbability = settings.horizontalBlinkProbability;
+        horizontalResetProbability = settings.horizontalResetProbability;
+        horizontalShowLaneGuides = settings.horizontalShowLaneGuides;
+        horizontalFrameInset = settings.horizontalFrameInset;
+        horizontalShowDataLabels = settings.horizontalShowDataLabels;
+        horizontalLabelPoolSize = settings.horizontalLabelPoolSize;
+        horizontalLabelSlotStep = settings.horizontalLabelSlotStep;
+        horizontalLabelRectEndOffset = settings.horizontalLabelRectEndOffset;
+        horizontalLabelBaselineOffset = settings.horizontalLabelBaselineOffset;
+        horizontalUseFixedLabelBaselines = settings.horizontalUseFixedLabelBaselines;
+        horizontalTopLabelBaselineY = settings.horizontalTopLabelBaselineY;
+        horizontalBottomLabelBaselineY = settings.horizontalBottomLabelBaselineY;
+        horizontalLabelFontSize = settings.horizontalLabelFontSize;
+        horizontalLabelAlpha = settings.horizontalLabelAlpha;
+        horizontalLabelColor = settings.horizontalLabelColor;
+        horizontalLabelAccentColor = settings.horizontalLabelAccentColor;
+        horizontalLabelAccentChance = settings.horizontalLabelAccentChance;
+        horizontalUseAudioDataTokens = settings.horizontalUseAudioDataTokens;
+        horizontalAudioDataTokenChance = settings.horizontalAudioDataTokenChance;
+        horizontalTopLabelTokens = settings.horizontalTopLabelTokens;
+        horizontalBottomLabelTokens = settings.horizontalBottomLabelTokens;
+    }
+
+    [System.Serializable]
+    class WaterfallControllerSettings
+    {
+        public WaterfallPreset preset;
+        public WaterfallVisualMode visualMode;
+        public float worldWidth;
+        public float worldHeight;
+        public float zOffset;
+        public float globalIntensity;
+        public float speedMultiplier;
+        public float densityMultiplier;
+        public float accentProbability;
+        public float glitchProbability;
+        public float pulseProbability;
+        public Color defaultColor;
+        public Color dimColor;
+        public Color brightColor;
+        public Color accentColor;
+        public Color secondaryAccentColor;
+        public float baseAlpha;
+        public bool showCalibrationFrame;
+        public float scaffoldAlphaMultiplier;
+        public float pulseDecay;
+        public float accentDecay;
+        public int horizontalUnitCount;
+        public int horizontalRowCount;
+        public Vector2 horizontalWidthRange;
+        public Vector2 horizontalShortWidthRange;
+        public Vector2 horizontalLongWidthRange;
+        public Vector2 horizontalHeightRange;
+        public Vector2 horizontalStripeWidthRange;
+        public Vector2 horizontalStripeHeightRange;
+        public Vector2 horizontalSpeedRange;
+        public bool horizontalUseSteppedMotion;
+        public float horizontalStepInterval;
+        public float horizontalGridJitter;
+        public float horizontalLanePadding;
+        public float horizontalLanePaddingResponseSpeed;
+        public bool horizontalBarcodeAlignment;
+        public int horizontalUnitsPerRow;
+        public Vector2 horizontalBarcodeGapRange;
+        public float horizontalOutlineProbability;
+        public float horizontalStripeProbability;
+        public float horizontalShortBarProbability;
+        public float horizontalLongBarProbability;
+        public float horizontalBlinkProbability;
+        public float horizontalResetProbability;
+        public bool horizontalShowLaneGuides;
+        public float horizontalFrameInset;
+        public bool horizontalShowDataLabels;
+        public int horizontalLabelPoolSize;
+        public int horizontalLabelSlotStep;
+        public float horizontalLabelRectEndOffset;
+        public float horizontalLabelBaselineOffset;
+        public bool horizontalUseFixedLabelBaselines;
+        public float horizontalTopLabelBaselineY;
+        public float horizontalBottomLabelBaselineY;
+        public float horizontalLabelFontSize;
+        public float horizontalLabelAlpha;
+        public Color horizontalLabelColor;
+        public Color horizontalLabelAccentColor;
+        public float horizontalLabelAccentChance;
+        public bool horizontalUseAudioDataTokens;
+        public float horizontalAudioDataTokenChance;
+        public string[] horizontalTopLabelTokens;
+        public string[] horizontalBottomLabelTokens;
+    }
+
+    void UpdateRenderedControlValues()
+    {
+        float response = Mathf.Max(0.01f, horizontalLanePaddingResponseSpeed);
+        renderedHorizontalLanePadding = Mathf.Lerp(
+            renderedHorizontalLanePadding,
+            horizontalLanePadding,
+            1f - Mathf.Exp(-response * Time.deltaTime)
+        );
     }
 
     void InitializeRuntime()
@@ -365,6 +677,7 @@ public class WaterfallController : MonoBehaviour
         fillLayers = CreateLayerSet("Fills");
         InitializeHorizontalUnits();
         InitializeVerticalStreams();
+        InitializeDataLabels();
         CacheRuntimeConfig();
     }
 
@@ -378,7 +691,6 @@ public class WaterfallController : MonoBehaviour
             lastHorizontalRowCount != horizontalRowCount ||
             lastHorizontalUnitsPerRow != horizontalUnitsPerRow ||
             lastHorizontalBarcodeAlignment != horizontalBarcodeAlignment ||
-            !Mathf.Approximately(lastHorizontalLanePadding, horizontalLanePadding) ||
             lastHorizontalStripeHeightRange != horizontalStripeHeightRange ||
             lastHorizontalSpeedRange != horizontalSpeedRange;
 
@@ -584,6 +896,8 @@ public class WaterfallController : MonoBehaviour
 
             if (unit.x > worldWidth * 0.5f + unit.width)
                 ResetHorizontalUnit(unit, false, i);
+
+            UpdateHorizontalUnitLanePosition(unit);
         }
     }
 
@@ -617,9 +931,10 @@ public class WaterfallController : MonoBehaviour
     {
         int rows = Mathf.Max(1, horizontalRowCount);
         int row = horizontalBarcodeAlignment ? unitIndex % rows : Random.Range(0, rows);
-        float usableHeight = Mathf.Max(0.01f, worldHeight - horizontalLanePadding * 2f);
+        float lanePadding = renderedHorizontalLanePadding;
+        float usableHeight = Mathf.Max(0.01f, worldHeight - lanePadding * 2f);
         float rowStep = rows <= 1 ? 0f : usableHeight / (rows - 1);
-        float topCenter = worldHeight * 0.5f - horizontalLanePadding;
+        float topCenter = worldHeight * 0.5f - lanePadding;
         float laneHeight = rows <= 1 ? usableHeight : rowStep * 0.86f;
         int slot = rows <= 0 ? unitIndex : unitIndex / rows;
         int slotsPerRow = Mathf.Max(1, Mathf.CeilToInt(horizontalUnits.Length / (float)rows));
@@ -656,7 +971,9 @@ public class WaterfallController : MonoBehaviour
                 : -worldWidth * 0.5f - unit.width - Random.Range(0f, worldWidth * 0.2f);
         }
 
-        unit.y = ResolveHorizontalUnitTopY(row, rows, unit.height, topCenter, rowStep);
+        unit.row = row;
+        unit.slot = slot;
+        unit.y = ResolveHorizontalUnitTopY(row, rows, unit.height, topCenter, rowStep, true);
         unit.speed = RandomRange(horizontalSpeedRange, 0f);
         unit.group = PickSignalGroup(stripe ? 0.52f : 0.78f);
         unit.outline = !stripe && Random.value < horizontalOutlineProbability;
@@ -664,14 +981,27 @@ public class WaterfallController : MonoBehaviour
         unit.stepTimer = Random.Range(0f, Mathf.Max(0.01f, horizontalStepInterval));
     }
 
-    float ResolveHorizontalUnitTopY(int row, int rows, float unitHeight, float topCenter, float rowStep)
+    void UpdateHorizontalUnitLanePosition(HorizontalUnit unit)
     {
-        float jitter = Random.Range(-horizontalGridJitter, horizontalGridJitter);
+        int rows = Mathf.Max(1, horizontalRowCount);
+        float lanePadding = renderedHorizontalLanePadding;
+        float usableHeight = Mathf.Max(0.01f, worldHeight - lanePadding * 2f);
+        float rowStep = rows <= 1 ? 0f : usableHeight / (rows - 1);
+        float topCenter = worldHeight * 0.5f - lanePadding;
+        float targetY = ResolveHorizontalUnitTopY(unit.row, rows, unit.height, topCenter, rowStep, false);
+        float response = Mathf.Max(0.01f, horizontalLanePaddingResponseSpeed);
+
+        unit.y = Mathf.Lerp(unit.y, targetY, 1f - Mathf.Exp(-response * Time.deltaTime));
+    }
+
+    float ResolveHorizontalUnitTopY(int row, int rows, float unitHeight, float topCenter, float rowStep, bool includeJitter)
+    {
+        float jitter = includeJitter ? Random.Range(-horizontalGridJitter, horizontalGridJitter) : 0f;
 
         if (horizontalBarcodeAlignment && rows == 3)
         {
-            float topEdge = horizontalLanePadding;
-            float bottomEdge = -horizontalLanePadding;
+            float topEdge = renderedHorizontalLanePadding;
+            float bottomEdge = -renderedHorizontalLanePadding;
 
             if (row == 0)
                 return topEdge + jitter;
@@ -697,6 +1027,198 @@ public class WaterfallController : MonoBehaviour
             return RandomRange(horizontalShortWidthRange, 0.02f);
 
         return RandomRange(horizontalWidthRange, 0.02f);
+    }
+
+    void InitializeDataLabels()
+    {
+        if (meshRoot == null)
+            return;
+
+        int count = Mathf.Max(0, horizontalLabelPoolSize);
+        dataLabels = new DataLabel[count];
+
+        for (int i = 0; i < dataLabels.Length; i++)
+        {
+            GameObject obj = new GameObject($"Waterfall_DataLabel_{i:00}");
+            obj.transform.SetParent(meshRoot, false);
+            obj.transform.localPosition = Vector3.zero;
+            obj.transform.localRotation = Quaternion.identity;
+            obj.transform.localScale = Vector3.one;
+
+            TextMeshPro text = obj.AddComponent<TextMeshPro>();
+            text.text = "";
+            text.alignment = TextAlignmentOptions.Center;
+            text.enableWordWrapping = false;
+            text.fontSize = horizontalLabelFontSize;
+            text.color = Color.clear;
+
+            dataLabels[i] = new DataLabel
+            {
+                text = text,
+                transform = obj.transform,
+                color = horizontalLabelColor,
+                nextTokenTime = 0f,
+                active = false
+            };
+
+            obj.SetActive(false);
+        }
+    }
+
+    void UpdateHorizontalDataLabels()
+    {
+        if (!horizontalShowDataLabels || horizontalUnits == null || dataLabels == null || dataLabels.Length == 0)
+        {
+            SetAllDataLabelsActive(false);
+            return;
+        }
+
+        int labelIndex = 0;
+        int rows = Mathf.Max(1, horizontalRowCount);
+        int bottomRow = rows - 1;
+        int slotStep = Mathf.Max(1, horizontalLabelSlotStep);
+        float maxStripeHeight = Mathf.Max(horizontalStripeHeightRange.x, horizontalStripeHeightRange.y);
+        float topBaseline = horizontalUseFixedLabelBaselines
+            ? horizontalTopLabelBaselineY
+            : renderedHorizontalLanePadding - maxStripeHeight - horizontalLabelBaselineOffset;
+        float bottomBaseline = horizontalUseFixedLabelBaselines
+            ? horizontalBottomLabelBaselineY
+            : -renderedHorizontalLanePadding + maxStripeHeight + horizontalLabelBaselineOffset;
+
+        for (int i = 0; i < horizontalUnits.Length && labelIndex < dataLabels.Length; i++)
+        {
+            HorizontalUnit unit = horizontalUnits[i];
+            if (!unit.visible || unit.outline)
+                continue;
+
+            bool topLabel = unit.row == 0;
+            bool bottomLabel = unit.row == bottomRow;
+            if (!topLabel && !bottomLabel)
+                continue;
+
+            if (unit.slot % slotStep != 0)
+                continue;
+
+            float y = topLabel ? topBaseline : bottomBaseline;
+            string[] tokens = topLabel ? horizontalTopLabelTokens : horizontalBottomLabelTokens;
+            ApplyDataLabel(dataLabels[labelIndex], unit.x + unit.width + horizontalLabelRectEndOffset, y, tokens);
+            labelIndex++;
+        }
+
+        for (int i = labelIndex; i < dataLabels.Length; i++)
+            SetDataLabelActive(dataLabels[i], false);
+    }
+
+    void ApplyDataLabel(DataLabel label, float x, float y, string[] tokens)
+    {
+        if (label == null || label.text == null || label.transform == null)
+            return;
+
+        SetDataLabelActive(label, true);
+
+        if (Time.time >= label.nextTokenTime || string.IsNullOrEmpty(label.text.text))
+        {
+            label.text.text = PickDataLabelToken(tokens);
+            label.color = Random.value < horizontalLabelAccentChance ? horizontalLabelAccentColor : horizontalLabelColor;
+            label.nextTokenTime = Time.time + Random.Range(0.35f, 1.2f);
+        }
+
+        label.transform.localPosition = new Vector3(x, y, zOffset - 0.05f);
+        label.text.fontSize = horizontalLabelFontSize;
+
+        Color color = label.color;
+        color.a = Mathf.Clamp01(horizontalLabelAlpha * Mathf.Max(0f, globalIntensity));
+        label.text.color = color;
+    }
+
+    string PickDataLabelToken(string[] tokens)
+    {
+        if (horizontalUseAudioDataTokens && Random.value < horizontalAudioDataTokenChance)
+        {
+            string audioToken = PickAudioDataLabelToken();
+            if (!string.IsNullOrEmpty(audioToken))
+                return audioToken;
+        }
+
+        if (tokens == null || tokens.Length == 0)
+            return "SIG";
+
+        string token = tokens[Random.Range(0, tokens.Length)];
+        if (string.IsNullOrWhiteSpace(token))
+            return "SIG";
+
+        token = token.Trim();
+        if (token.Length < 3)
+            token = token.PadRight(3, '0');
+
+        if (token.Length > 6)
+            token = token.Substring(0, 6);
+
+        return token;
+    }
+
+    string PickAudioDataLabelToken()
+    {
+        WaterfallAudioReactiveController source = GetAudioReactiveSource();
+        if (source == null)
+            return null;
+
+        int roll = Random.Range(0, 5);
+        if (roll == 0)
+            return "A:" + ToTwoDigitToken(source.NormalizedRms);
+
+        if (roll == 1)
+            return "PK" + ToTwoDigitToken(source.PeakRms);
+
+        if (roll == 2)
+            return "H:" + ToTwoDigitToken(source.HighRatio);
+
+        if (roll == 3)
+            return "TR" + ToTwoDigitToken(source.TransientAmount);
+
+        return "LV" + ToTwoDigitToken(source.SmoothedRms);
+    }
+
+    WaterfallAudioReactiveController GetAudioReactiveSource()
+    {
+        if (audioReactiveSource != null)
+            return audioReactiveSource;
+
+        audioReactiveSource = GetComponent<WaterfallAudioReactiveController>();
+        if (audioReactiveSource == null)
+            audioReactiveSource = GetComponentInChildren<WaterfallAudioReactiveController>();
+
+        if (audioReactiveSource == null)
+            audioReactiveSource = FindFirstObjectByType<WaterfallAudioReactiveController>();
+
+        return audioReactiveSource;
+    }
+
+    string ToTwoDigitToken(float value)
+    {
+        int scaled = Mathf.Clamp(Mathf.RoundToInt(value * 99f), 0, 99);
+        return scaled.ToString("00");
+    }
+
+    void SetAllDataLabelsActive(bool active)
+    {
+        if (dataLabels == null)
+            return;
+
+        foreach (DataLabel label in dataLabels)
+            SetDataLabelActive(label, active);
+    }
+
+    void SetDataLabelActive(DataLabel label, bool active)
+    {
+        if (label == null || label.text == null)
+            return;
+
+        if (label.active == active)
+            return;
+
+        label.active = active;
+        label.text.gameObject.SetActive(active);
     }
 
     void UpdateDataWaterfallVertical()
@@ -831,15 +1353,15 @@ public class WaterfallController : MonoBehaviour
 
         if (horizontalBarcodeAlignment && rows == 3)
         {
-            AddLine(lineLayers[DimGroup], new Vector3(left, horizontalLanePadding, zOffset - 0.02f), new Vector3(right, horizontalLanePadding, zOffset - 0.02f));
+            AddLine(lineLayers[DimGroup], new Vector3(left, renderedHorizontalLanePadding, zOffset - 0.02f), new Vector3(right, renderedHorizontalLanePadding, zOffset - 0.02f));
             AddLine(lineLayers[DimGroup], new Vector3(left, 0f, zOffset - 0.02f), new Vector3(right, 0f, zOffset - 0.02f));
-            AddLine(lineLayers[DimGroup], new Vector3(left, -horizontalLanePadding, zOffset - 0.02f), new Vector3(right, -horizontalLanePadding, zOffset - 0.02f));
+            AddLine(lineLayers[DimGroup], new Vector3(left, -renderedHorizontalLanePadding, zOffset - 0.02f), new Vector3(right, -renderedHorizontalLanePadding, zOffset - 0.02f));
             return;
         }
 
-        float usableHeight = Mathf.Max(0.01f, worldHeight - horizontalLanePadding * 2f);
+        float usableHeight = Mathf.Max(0.01f, worldHeight - renderedHorizontalLanePadding * 2f);
         float rowStep = rows <= 1 ? 0f : usableHeight / (rows - 1);
-        float firstY = worldHeight * 0.5f - horizontalLanePadding;
+        float firstY = worldHeight * 0.5f - renderedHorizontalLanePadding;
 
         for (int row = 0; row < rows; row++)
         {

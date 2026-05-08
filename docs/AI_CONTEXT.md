@@ -18,6 +18,9 @@ The goal is not accurate individual representation, but a posthuman collective p
 - aggregator.py combines multiple camera streams
 - Unity receives aggregated pose data and drives an avatar
 - FragmentSlot and FragmentController manage moving render-texture fragments
+- OutputModeManager selects Fragment / WaterfallA / WaterfallB / Full output modes
+- WaterfallController manages procedural WaterfallA / WaterfallB visuals under BackgroundRoot
+- WaterfallAudioReactiveController lets WaterfallB react to system / VCV audio routed through BlackHole 2ch
 - Projection mapping may be handled later with MadMapper or Resolume
 
 ## Current Known System Flow
@@ -30,6 +33,21 @@ Camera(s)
 → fragment cameras / render textures
 → Unity output
 → projector mapping
+
+## Current Waterfall Status
+- WaterfallB is visually complete enough to treat as a formal preset.
+- WaterfallB uses TestPatternHorizontal: three barcode-like horizontal lanes, white/gray rectangles, sparse cyan/green accents, and fixed-baseline data labels.
+- WaterfallB does not communicate with VCV directly.
+- WaterfallB can react to system audio by listening to BlackHole 2ch through Unity Microphone input.
+- Current WaterfallB audio tuning is environment-sensitive; exhibition setup may require adjusting rmsFloor, rmsCeil, smoothing, lanePaddingMin, and lanePaddingMax.
+- WaterfallController and WaterfallAudioReactiveController can save Play Mode tuning to StreamingAssets JSON files.
+- WaterfallA is the next target for direct VCV / rhythm control.
+
+## Runtime Separation Notes
+- Fragment / UPose / avatar / aggregator are the main body pipeline and should remain isolated from WaterfallB audio work.
+- Waterfall output modes should keep BackgroundRoot active and fragment/avatar/UDP roots inactive, avoiding UPose UDP port conflicts.
+- MediaPipe / UPose ports are 52733-52736, 52833-52836, and 53000.
+- Future WaterfallA VCV communication should use a separate port range.
 
 ## Coding Rules for AI
 - Make minimal, high-confidence changes
