@@ -2172,13 +2172,14 @@ GameObject:
   m_Component:
   - component: {fileID: 981538048}
   - component: {fileID: 981538047}
+  - component: {fileID: 981538049}
   m_Layer: 0
   m_Name: BackgroundRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &981538047
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2186,7 +2187,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 981538046}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 75adbe8e57e41b340944c4a2c29469bc, type: 3}
   m_Name: 
@@ -2232,6 +2233,91 @@ Transform:
   - {fileID: 93358269}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &981538049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981538046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49bc1bf06082cbc40aa96aa6fa45562c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterfallController
+  preset: 1
+  useOutputModeManagerPreset: 1
+  applyPresetOnStart: 1
+  preserveInspectorLanePaddingOnPreset: 1
+  visualMode: 0
+  worldWidth: 12.8
+  worldHeight: 8
+  zOffset: 0
+  globalIntensity: 1
+  speedMultiplier: 1
+  densityMultiplier: 1
+  accentProbability: 0.025
+  glitchProbability: 0.05
+  pulseProbability: 0.035
+  defaultColor: {r: 0.86, g: 0.86, b: 0.86, a: 1}
+  dimColor: {r: 0.42, g: 0.42, b: 0.42, a: 1}
+  brightColor: {r: 1, g: 1, b: 1, a: 1}
+  accentColor: {r: 0, g: 1, b: 0, a: 1}
+  secondaryAccentColor: {r: 0, g: 1, b: 1, a: 1}
+  baseAlpha: 0.72
+  showCalibrationFrame: 1
+  scaffoldAlphaMultiplier: 0.35
+  pulse: 0
+  accentTrigger: 0
+  pulseDecay: 1.8
+  accentDecay: 2.5
+  horizontalUnitCount: 90
+  horizontalRowCount: 10
+  horizontalWidthRange: {x: 0.35, y: 2.4}
+  horizontalShortWidthRange: {x: 0.12, y: 0.65}
+  horizontalLongWidthRange: {x: 2.2, y: 5.4}
+  horizontalHeightRange: {x: 0.08, y: 0.55}
+  horizontalStripeWidthRange: {x: 0.025, y: 0.12}
+  horizontalStripeHeightRange: {x: 0.45, y: 1.65}
+  horizontalSpeedRange: {x: 0.05, y: 0.55}
+  horizontalUseSteppedMotion: 0
+  horizontalStepInterval: 0.12
+  horizontalGridJitter: 0.06
+  horizontalLanePadding: 0.2
+  horizontalBarcodeAlignment: 1
+  horizontalUnitsPerRow: 96
+  horizontalBarcodeGapRange: {x: 0.012, y: 0.055}
+  horizontalOutlineProbability: 0.22
+  horizontalStripeProbability: 0.72
+  horizontalShortBarProbability: 0.55
+  horizontalLongBarProbability: 0.18
+  horizontalBlinkProbability: 0.04
+  horizontalResetProbability: 0.008
+  horizontalShowLaneGuides: 1
+  horizontalFrameInset: 0.08
+  verticalStreamCount: 140
+  verticalColumnCount: 96
+  segmentsPerStreamMin: 3
+  segmentsPerStreamMax: 10
+  segmentWidthMin: 0.015
+  segmentWidthMax: 0.075
+  segmentHeightMin: 0.035
+  segmentHeightMax: 0.32
+  segmentGapMin: 0.035
+  segmentGapMax: 0.28
+  fallSpeedMin: 0.7
+  fallSpeedMax: 3.2
+  alphaMin: 0.25
+  alphaMax: 0.82
+  brightnessMin: 0.55
+  brightnessMax: 1
+  jitterAmount: 0.035
+  resetProbability: 0.004
+  verticalShowColumnGuides: 1
+  verticalGuideEveryColumns: 12
+  verticalFrameInset: 0.08
+  meshRootName: WaterfallRuntimeMeshes
+  liveApplyInspectorChanges: 1
 --- !u!1 &992788407
 GameObject:
   m_ObjectHideFlags: 0
@@ -3438,8 +3524,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fdeca57aba5444292698f7040b8a9dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OutputModeManager
-  defaultMode: 0
+  defaultMode: 2
   logSelectedMode: 1
+  useEditorPreviewMode: 1
+  editorPreviewMode: 2
   useRootNameFallback: 1
   waterfallRootNames:
   - BackgroundRoot

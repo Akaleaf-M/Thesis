@@ -20,6 +20,7 @@ public class WaterfallController : MonoBehaviour
     public WaterfallPreset preset = WaterfallPreset.WaterfallA;
     public bool useOutputModeManagerPreset = true;
     public bool applyPresetOnStart = true;
+    public bool preserveInspectorLanePaddingOnPreset = true;
 
     [Header("Visual Mode")]
     public WaterfallVisualMode visualMode = WaterfallVisualMode.TestPatternHorizontal;
@@ -37,9 +38,15 @@ public class WaterfallController : MonoBehaviour
     [Range(0f, 1f)] public float glitchProbability = 0.05f;
     [Range(0f, 1f)] public float pulseProbability = 0.035f;
     public Color defaultColor = new Color(0.86f, 0.86f, 0.86f, 1f);
+    public Color dimColor = new Color(0.42f, 0.42f, 0.42f, 1f);
+    public Color brightColor = new Color(1f, 1f, 1f, 1f);
     public Color accentColor = new Color(0f, 1f, 0f, 1f);
     public Color secondaryAccentColor = new Color(0f, 1f, 1f, 1f);
     [Range(0f, 1f)] public float baseAlpha = 0.72f;
+
+    [Header("Display Structure")]
+    public bool showCalibrationFrame = true;
+    [Range(0f, 1f)] public float scaffoldAlphaMultiplier = 0.35f;
 
     [Header("Future VCV Placeholder")]
     [Range(0f, 1f)] public float pulse = 0f;
@@ -60,6 +67,7 @@ public class WaterfallController : MonoBehaviour
     public bool horizontalUseSteppedMotion = false;
     public float horizontalStepInterval = 0.12f;
     public float horizontalGridJitter = 0.06f;
+    [Range(0f, 1.5f)]
     public float horizontalLanePadding = 0.55f;
     public bool horizontalBarcodeAlignment = true;
     public int horizontalUnitsPerRow = 96;
@@ -70,6 +78,8 @@ public class WaterfallController : MonoBehaviour
     [Range(0f, 1f)] public float horizontalLongBarProbability = 0.18f;
     [Range(0f, 1f)] public float horizontalBlinkProbability = 0.04f;
     [Range(0f, 1f)] public float horizontalResetProbability = 0.008f;
+    public bool horizontalShowLaneGuides = true;
+    public float horizontalFrameInset = 0.08f;
 
     [Header("DataWaterfallVertical")]
     public int verticalStreamCount = 140;
@@ -90,14 +100,21 @@ public class WaterfallController : MonoBehaviour
     public float brightnessMax = 1f;
     public float jitterAmount = 0.035f;
     public float resetProbability = 0.004f;
+    public bool verticalShowColumnGuides = true;
+    public int verticalGuideEveryColumns = 12;
+    public float verticalFrameInset = 0.08f;
 
     [Header("Runtime Objects")]
     public string meshRootName = "WaterfallRuntimeMeshes";
+    public bool liveApplyInspectorChanges = true;
 
-    private const int DefaultGroup = 0;
-    private const int AccentGroup = 1;
-    private const int SecondaryAccentGroup = 2;
-    private const int GroupCount = 3;
+    private const int DimGroup = 0;
+    private const int DefaultGroup = 1;
+    private const int BrightGroup = 2;
+    private const int AccentGroup = 3;
+    private const int SecondaryAccentGroup = 4;
+    private const int GroupCount = 5;
+    private const float WaterfallBLanePaddingPreset = 0.55f;
 
     private class MeshLayer
     {
@@ -148,9 +165,19 @@ public class WaterfallController : MonoBehaviour
     private bool isGlitching;
     private float glitchTimer;
     private float glitchDuration;
+    private int lastHorizontalUnitCount;
+    private int lastHorizontalRowCount;
+    private int lastHorizontalUnitsPerRow;
+    private bool lastHorizontalBarcodeAlignment;
+    private float lastHorizontalLanePadding;
+    private Vector2 lastHorizontalStripeHeightRange;
+    private Vector2 lastHorizontalSpeedRange;
+    private int lastVerticalStreamCount;
 
     void Awake()
     {
+        ClampControlRanges();
+
         if (useOutputModeManagerPreset)
             ResolvePresetFromOutputMode();
 
@@ -171,6 +198,8 @@ public class WaterfallController : MonoBehaviour
         if (lineLayers == null || fillLayers == null)
             return;
 
+        ClampControlRanges();
+        RefreshRuntimeFromInspectorChanges();
         UpdateExternalControlDecay();
         UpdateGlitchState();
 
@@ -197,59 +226,78 @@ public class WaterfallController : MonoBehaviour
     {
         if (preset == WaterfallPreset.WaterfallA)
         {
-            visualMode = WaterfallVisualMode.DataWaterfallVertical;
-            worldWidth = 12.8f;
-            worldHeight = 8f;
-            baseAlpha = 0.48f;
-            globalIntensity = 0.85f;
-            accentProbability = 0.018f;
-            glitchProbability = 0.045f;
-            pulseProbability = 0.03f;
-            verticalStreamCount = 180;
-            verticalColumnCount = 120;
-            segmentsPerStreamMin = 4;
-            segmentsPerStreamMax = 12;
-            segmentWidthMin = 0.012f;
-            segmentWidthMax = 0.06f;
-            segmentHeightMin = 0.03f;
-            segmentHeightMax = 0.26f;
-            fallSpeedMin = 0.8f;
-            fallSpeedMax = 3.4f;
+            ApplyWaterfallAPreset();
             return;
         }
 
         if (preset == WaterfallPreset.WaterfallB)
-        {
-            visualMode = WaterfallVisualMode.TestPatternHorizontal;
-            worldWidth = 10.24f;
-            worldHeight = 7.68f;
-            baseAlpha = 0.9f;
-            globalIntensity = 0.95f;
-            accentProbability = 0.035f;
-            glitchProbability = 0.035f;
-            pulseProbability = 0.05f;
-            horizontalUnitCount = 520;
-            horizontalRowCount = 4;
-            horizontalUnitsPerRow = 130;
-            horizontalWidthRange = new Vector2(0.35f, 1.4f);
-            horizontalShortWidthRange = new Vector2(0.08f, 0.32f);
-            horizontalLongWidthRange = new Vector2(1.4f, 4.4f);
-            horizontalHeightRange = new Vector2(0.055f, 0.22f);
-            horizontalStripeWidthRange = new Vector2(0.012f, 0.075f);
-            horizontalStripeHeightRange = new Vector2(1.05f, 1.65f);
-            horizontalSpeedRange = new Vector2(5.2f, 13.5f);
-            horizontalUseSteppedMotion = false;
-            horizontalStepInterval = 0.025f;
-            horizontalGridJitter = 0.002f;
-            horizontalLanePadding = 0.42f;
-            horizontalBarcodeAlignment = true;
-            horizontalBarcodeGapRange = new Vector2(0.006f, 0.026f);
-            horizontalOutlineProbability = 0.035f;
-            horizontalStripeProbability = 0.91f;
-            horizontalShortBarProbability = 0.045f;
-            horizontalLongBarProbability = 0.035f;
-            horizontalResetProbability = 0.012f;
-        }
+            ApplyWaterfallBPreset();
+    }
+
+    void ApplyWaterfallAPreset()
+    {
+        visualMode = WaterfallVisualMode.DataWaterfallVertical;
+        worldWidth = 12.8f;
+        worldHeight = 8f;
+        baseAlpha = 0.58f;
+        globalIntensity = 0.9f;
+        densityMultiplier = 1f;
+        speedMultiplier = 1f;
+        accentProbability = 0.014f;
+        glitchProbability = 0.045f;
+        pulseProbability = 0.026f;
+        verticalStreamCount = 240;
+        verticalColumnCount = 144;
+        segmentsPerStreamMin = 4;
+        segmentsPerStreamMax = 14;
+        segmentWidthMin = 0.01f;
+        segmentWidthMax = 0.052f;
+        segmentHeightMin = 0.026f;
+        segmentHeightMax = 0.24f;
+        segmentGapMin = 0.028f;
+        segmentGapMax = 0.22f;
+        fallSpeedMin = 0.9f;
+        fallSpeedMax = 3.8f;
+        jitterAmount = 0.022f;
+        resetProbability = 0.0035f;
+    }
+
+    void ApplyWaterfallBPreset()
+    {
+        visualMode = WaterfallVisualMode.TestPatternHorizontal;
+        worldWidth = 10.24f;
+        worldHeight = 7.68f;
+        baseAlpha = 0.9f;
+        globalIntensity = 0.95f;
+        densityMultiplier = 1f;
+        speedMultiplier = 1f;
+        accentProbability = 0.022f;
+        glitchProbability = 0.035f;
+        pulseProbability = 0.05f;
+        horizontalUnitCount = 540;
+        horizontalRowCount = 3;
+        horizontalUnitsPerRow = 180;
+        horizontalWidthRange = new Vector2(0.35f, 1.4f);
+        horizontalShortWidthRange = new Vector2(0.08f, 0.32f);
+        horizontalLongWidthRange = new Vector2(1.3f, 3.8f);
+        horizontalHeightRange = new Vector2(0.055f, 0.22f);
+        horizontalStripeWidthRange = new Vector2(0.01f, 0.065f);
+        horizontalStripeHeightRange = new Vector2(0.56f, 0.92f);
+        horizontalSpeedRange = new Vector2(1.8f, 5.2f);
+        horizontalUseSteppedMotion = false;
+        horizontalStepInterval = 0.025f;
+        horizontalGridJitter = 0.002f;
+        horizontalBarcodeAlignment = true;
+        horizontalBarcodeGapRange = new Vector2(0.006f, 0.026f);
+        horizontalOutlineProbability = 0.025f;
+        horizontalStripeProbability = 0.93f;
+        horizontalShortBarProbability = 0.035f;
+        horizontalLongBarProbability = 0.028f;
+        horizontalBlinkProbability = 0.028f;
+        horizontalResetProbability = 0.01f;
+
+        if (!preserveInspectorLanePaddingOnPreset)
+            horizontalLanePadding = WaterfallBLanePaddingPreset;
     }
 
     void ResolvePresetFromOutputMode()
@@ -280,6 +328,11 @@ public class WaterfallController : MonoBehaviour
         densityMultiplier = Mathf.Max(0f, value);
     }
 
+    public void SetLanePadding(float value)
+    {
+        horizontalLanePadding = Mathf.Clamp(value, 0f, 1.5f);
+    }
+
     public void TriggerPulse(float amount)
     {
         pulse = Mathf.Clamp01(Mathf.Max(pulse, amount));
@@ -295,6 +348,16 @@ public class WaterfallController : MonoBehaviour
         accentTrigger = Mathf.Clamp01(Mathf.Max(accentTrigger, amount));
     }
 
+    void OnValidate()
+    {
+        ClampControlRanges();
+    }
+
+    void ClampControlRanges()
+    {
+        horizontalLanePadding = Mathf.Clamp(horizontalLanePadding, 0f, 1.5f);
+    }
+
     void InitializeRuntime()
     {
         meshRoot = CreateRuntimeRoot(meshRootName);
@@ -302,6 +365,45 @@ public class WaterfallController : MonoBehaviour
         fillLayers = CreateLayerSet("Fills");
         InitializeHorizontalUnits();
         InitializeVerticalStreams();
+        CacheRuntimeConfig();
+    }
+
+    void RefreshRuntimeFromInspectorChanges()
+    {
+        if (!liveApplyInspectorChanges)
+            return;
+
+        bool horizontalNeedsRebuild =
+            lastHorizontalUnitCount != horizontalUnitCount ||
+            lastHorizontalRowCount != horizontalRowCount ||
+            lastHorizontalUnitsPerRow != horizontalUnitsPerRow ||
+            lastHorizontalBarcodeAlignment != horizontalBarcodeAlignment ||
+            !Mathf.Approximately(lastHorizontalLanePadding, horizontalLanePadding) ||
+            lastHorizontalStripeHeightRange != horizontalStripeHeightRange ||
+            lastHorizontalSpeedRange != horizontalSpeedRange;
+
+        bool verticalNeedsRebuild = lastVerticalStreamCount != verticalStreamCount;
+
+        if (horizontalNeedsRebuild)
+            InitializeHorizontalUnits();
+
+        if (verticalNeedsRebuild)
+            InitializeVerticalStreams();
+
+        if (horizontalNeedsRebuild || verticalNeedsRebuild)
+            CacheRuntimeConfig();
+    }
+
+    void CacheRuntimeConfig()
+    {
+        lastHorizontalUnitCount = horizontalUnitCount;
+        lastHorizontalRowCount = horizontalRowCount;
+        lastHorizontalUnitsPerRow = horizontalUnitsPerRow;
+        lastHorizontalBarcodeAlignment = horizontalBarcodeAlignment;
+        lastHorizontalLanePadding = horizontalLanePadding;
+        lastHorizontalStripeHeightRange = horizontalStripeHeightRange;
+        lastHorizontalSpeedRange = horizontalSpeedRange;
+        lastVerticalStreamCount = verticalStreamCount;
     }
 
     Transform CreateRuntimeRoot(string rootName)
@@ -317,7 +419,9 @@ public class WaterfallController : MonoBehaviour
     MeshLayer[] CreateLayerSet(string setName)
     {
         MeshLayer[] layers = new MeshLayer[GroupCount];
+        layers[DimGroup] = CreateMeshLayer(setName + "_Dim", dimColor);
         layers[DefaultGroup] = CreateMeshLayer(setName + "_Default", defaultColor);
+        layers[BrightGroup] = CreateMeshLayer(setName + "_Bright", brightColor);
         layers[AccentGroup] = CreateMeshLayer(setName + "_Accent", accentColor);
         layers[SecondaryAccentGroup] = CreateMeshLayer(setName + "_SecondaryAccent", secondaryAccentColor);
         return layers;
@@ -488,6 +592,8 @@ public class WaterfallController : MonoBehaviour
         if (horizontalUnits == null)
             return;
 
+        AddTestPatternScaffold();
+
         foreach (HorizontalUnit unit in horizontalUnits)
         {
             if (!unit.visible)
@@ -496,9 +602,9 @@ public class WaterfallController : MonoBehaviour
             if (Random.value < horizontalBlinkProbability * Time.deltaTime * (1f + pulse * 4f))
                 continue;
 
-            int group = PickAccentGroup();
-            if (unit.group != DefaultGroup && Random.value > 0.3f)
-                group = unit.group;
+            int group = unit.group;
+            if (pulse > 0.01f && Random.value < pulse * 0.02f)
+                group = PickSignalGroup(1f);
 
             if (unit.outline)
                 AddRectOutline(lineLayers[group], unit.x, unit.y, unit.width, unit.height);
@@ -513,7 +619,7 @@ public class WaterfallController : MonoBehaviour
         int row = horizontalBarcodeAlignment ? unitIndex % rows : Random.Range(0, rows);
         float usableHeight = Mathf.Max(0.01f, worldHeight - horizontalLanePadding * 2f);
         float rowStep = rows <= 1 ? 0f : usableHeight / (rows - 1);
-        float top = worldHeight * 0.5f - horizontalLanePadding;
+        float topCenter = worldHeight * 0.5f - horizontalLanePadding;
         float laneHeight = rows <= 1 ? usableHeight : rowStep * 0.86f;
         int slot = rows <= 0 ? unitIndex : unitIndex / rows;
         int slotsPerRow = Mathf.Max(1, Mathf.CeilToInt(horizontalUnits.Length / (float)rows));
@@ -550,12 +656,34 @@ public class WaterfallController : MonoBehaviour
                 : -worldWidth * 0.5f - unit.width - Random.Range(0f, worldWidth * 0.2f);
         }
 
-        unit.y = top - row * rowStep + Random.Range(-horizontalGridJitter, horizontalGridJitter);
+        unit.y = ResolveHorizontalUnitTopY(row, rows, unit.height, topCenter, rowStep);
         unit.speed = RandomRange(horizontalSpeedRange, 0f);
-        unit.group = PickAccentGroup();
+        unit.group = PickSignalGroup(stripe ? 0.52f : 0.78f);
         unit.outline = !stripe && Random.value < horizontalOutlineProbability;
         unit.visible = true;
         unit.stepTimer = Random.Range(0f, Mathf.Max(0.01f, horizontalStepInterval));
+    }
+
+    float ResolveHorizontalUnitTopY(int row, int rows, float unitHeight, float topCenter, float rowStep)
+    {
+        float jitter = Random.Range(-horizontalGridJitter, horizontalGridJitter);
+
+        if (horizontalBarcodeAlignment && rows == 3)
+        {
+            float topEdge = horizontalLanePadding;
+            float bottomEdge = -horizontalLanePadding;
+
+            if (row == 0)
+                return topEdge + jitter;
+
+            if (row == 1)
+                return unitHeight * 0.5f + jitter;
+
+            return bottomEdge + unitHeight + jitter;
+        }
+
+        float rowCenterY = topCenter - row * rowStep + jitter;
+        return rowCenterY + unitHeight * 0.5f;
     }
 
     float PickHorizontalWidth()
@@ -601,6 +729,8 @@ public class WaterfallController : MonoBehaviour
     {
         if (verticalStreams == null)
             return;
+
+        AddDataWaterfallScaffold();
 
         int activeCount = Mathf.Clamp(Mathf.RoundToInt(verticalStreams.Length * Mathf.Max(0f, densityMultiplier)), 0, verticalStreams.Length);
 
@@ -650,7 +780,8 @@ public class WaterfallController : MonoBehaviour
             segment.height = Random.Range(Mathf.Max(0.001f, segmentHeightMin), Mathf.Max(segmentHeightMin, segmentHeightMax));
             segment.offsetX = Random.Range(-jitterAmount, jitterAmount);
             segment.offsetY = cursor;
-            segment.group = PickAccentGroup();
+            float brightnessBias = Mathf.InverseLerp(brightnessMin, brightnessMax, Random.Range(brightnessMin, brightnessMax));
+            segment.group = PickSignalGroup(brightnessBias);
             segment.visible = true;
             cursor += segment.height + Random.Range(Mathf.Max(0.001f, segmentGapMin), Mathf.Max(segmentGapMin, segmentGapMax));
             stream.segments[i] = segment;
@@ -659,13 +790,91 @@ public class WaterfallController : MonoBehaviour
         stream.height = cursor;
     }
 
-    int PickAccentGroup()
+    int PickSignalGroup(float brightnessBias)
     {
         float chance = Mathf.Clamp01(accentProbability + accentTrigger * 0.2f);
-        if (Random.value > chance)
-            return DefaultGroup;
+        if (Random.value <= chance)
+            return Random.value < 0.65f ? AccentGroup : SecondaryAccentGroup;
 
-        return Random.value < 0.65f ? AccentGroup : SecondaryAccentGroup;
+        float bias = Mathf.Clamp01(brightnessBias);
+        float dimChance = Mathf.Lerp(0.48f, 0.12f, bias);
+        float brightChance = Mathf.Lerp(0.05f, 0.22f, bias) + pulse * 0.08f;
+        float roll = Random.value;
+
+        if (roll < dimChance)
+            return DimGroup;
+
+        if (roll > 1f - brightChance)
+            return BrightGroup;
+
+        return DefaultGroup;
+    }
+
+    void AddTestPatternScaffold()
+    {
+        if (!showCalibrationFrame && !horizontalShowLaneGuides)
+            return;
+
+        float inset = Mathf.Max(0f, horizontalFrameInset);
+        float left = -worldWidth * 0.5f + inset;
+        float right = worldWidth * 0.5f - inset;
+        float top = worldHeight * 0.5f - inset;
+        float bottom = -worldHeight * 0.5f + inset;
+
+        if (showCalibrationFrame)
+            AddRectOutline(lineLayers[DimGroup], left, top, Mathf.Max(0.01f, right - left), Mathf.Max(0.01f, top - bottom));
+
+        if (!horizontalShowLaneGuides)
+            return;
+
+        int rows = Mathf.Max(1, horizontalRowCount);
+
+        if (horizontalBarcodeAlignment && rows == 3)
+        {
+            AddLine(lineLayers[DimGroup], new Vector3(left, horizontalLanePadding, zOffset - 0.02f), new Vector3(right, horizontalLanePadding, zOffset - 0.02f));
+            AddLine(lineLayers[DimGroup], new Vector3(left, 0f, zOffset - 0.02f), new Vector3(right, 0f, zOffset - 0.02f));
+            AddLine(lineLayers[DimGroup], new Vector3(left, -horizontalLanePadding, zOffset - 0.02f), new Vector3(right, -horizontalLanePadding, zOffset - 0.02f));
+            return;
+        }
+
+        float usableHeight = Mathf.Max(0.01f, worldHeight - horizontalLanePadding * 2f);
+        float rowStep = rows <= 1 ? 0f : usableHeight / (rows - 1);
+        float firstY = worldHeight * 0.5f - horizontalLanePadding;
+
+        for (int row = 0; row < rows; row++)
+        {
+            float y = firstY - row * rowStep;
+            AddLine(lineLayers[DimGroup], new Vector3(left, y, zOffset - 0.02f), new Vector3(right, y, zOffset - 0.02f));
+        }
+    }
+
+    void AddDataWaterfallScaffold()
+    {
+        if (!showCalibrationFrame && !verticalShowColumnGuides)
+            return;
+
+        float inset = Mathf.Max(0f, verticalFrameInset);
+        float left = -worldWidth * 0.5f + inset;
+        float right = worldWidth * 0.5f - inset;
+        float top = worldHeight * 0.5f - inset;
+        float bottom = -worldHeight * 0.5f + inset;
+
+        if (showCalibrationFrame)
+            AddRectOutline(lineLayers[DimGroup], left, top, Mathf.Max(0.01f, right - left), Mathf.Max(0.01f, top - bottom));
+
+        if (!verticalShowColumnGuides)
+            return;
+
+        int columns = Mathf.Max(1, verticalColumnCount);
+        int every = Mathf.Max(1, verticalGuideEveryColumns);
+        float step = worldWidth / columns;
+        float z = zOffset - 0.02f;
+
+        for (int column = every; column < columns; column += every)
+        {
+            float x = -worldWidth * 0.5f + step * column;
+            AddLine(lineLayers[DimGroup], new Vector3(x, top, z), new Vector3(x, bottom, z));
+        }
     }
 
     void AddRectOutline(MeshLayer layer, float x, float y, float width, float height)
@@ -746,21 +955,25 @@ public class WaterfallController : MonoBehaviour
 
     void ApplyLayerColors()
     {
+        SetLayerColor(lineLayers[DimGroup], dimColor, scaffoldAlphaMultiplier);
         SetLayerColor(lineLayers[DefaultGroup], defaultColor);
+        SetLayerColor(lineLayers[BrightGroup], brightColor);
         SetLayerColor(lineLayers[AccentGroup], accentColor);
         SetLayerColor(lineLayers[SecondaryAccentGroup], secondaryAccentColor);
+        SetLayerColor(fillLayers[DimGroup], dimColor);
         SetLayerColor(fillLayers[DefaultGroup], defaultColor);
+        SetLayerColor(fillLayers[BrightGroup], brightColor);
         SetLayerColor(fillLayers[AccentGroup], accentColor);
         SetLayerColor(fillLayers[SecondaryAccentGroup], secondaryAccentColor);
     }
 
-    void SetLayerColor(MeshLayer layer, Color color)
+    void SetLayerColor(MeshLayer layer, Color color, float alphaMultiplier = 1f)
     {
         if (layer == null || layer.material == null) return;
 
         float alpha = Mathf.Clamp01(baseAlpha * Mathf.Max(0f, globalIntensity));
         alpha = Mathf.Clamp01(alpha + pulse * 0.22f + (isGlitching ? glitchProbability * 0.45f : 0f));
-        color.a *= alpha;
+        color.a *= alpha * Mathf.Clamp01(alphaMultiplier);
 
         if (layer.material.HasProperty("_BaseColor"))
             layer.material.SetColor("_BaseColor", color);
