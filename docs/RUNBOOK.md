@@ -436,8 +436,19 @@ Current waterfall mode expectations:
 
 | Mode | Resolution | Visual mode | Notes |
 | --- | --- | --- | --- |
-| `WaterfallA` | `1280 x 800` | `DataWaterfallVertical` | Vertical data streams made from small rectangular units |
+| `WaterfallA` | `1280 x 800` | `DataWaterfallVertical` | Bidirectional collective body signal field with offscreen-generated data labels |
 | `WaterfallB` | `1024 x 768` | `TestPatternHorizontal` | Barcode-like horizontal test pattern / calibration lanes |
+
+Current `WaterfallA` visual direction:
+
+- `WaterfallA` is visually usable as the current preset, but not final.
+- It uses vertical streams / columns of white and cold gray rectangular segments.
+- Some columns act as wider, slower body channels.
+- Streams can move top-to-bottom and bottom-to-top.
+- Freeze / recompose behavior is part of the visual language and is a likely VCV control target.
+- Data labels spawn outside the camera view, keep their original token while visible, then disappear outside the frame.
+- `WaterfallA` labels can be longer than `WaterfallB` labels.
+- Useful current label tokens include `PEL`, `TORS`, `BODYMAP`, `P01`, `COL`, `FUSE_AVG`, `LATENCY`, `ROT_QTN`, and `VIS_LOW`.
 
 Current `WaterfallB` visual direction:
 
@@ -525,6 +536,45 @@ TriggerPulse(float amount)
 SetGlitchAmount(float value)
 TriggerAccent(float amount)
 ```
+
+### VCV Communication Planning
+
+Do not change the current MediaPipe -> Unity path when adding VCV communication:
+
+- Keep `run_mediapipe.py` sending to Unity solo ports `52733-52736`.
+- Keep `run_mediapipe.py` sending to aggregator input ports `52833-52836`.
+- Keep `aggregator.py` outputting collective body to Unity port `53000`.
+- Do not use `52733-52736`, `52833-52836`, or `53000` for VCV receive ports.
+
+Recommended first development step for body-to-VCV control:
+
+```text
+body_control_bridge.py
+-> listens to existing collective mprot stream on 127.0.0.1:53000
+-> computes a small set of smoothed body control signals
+-> sends OSC / UDP to VCV on a new 54000+ port
+```
+
+Initial candidate signals:
+
+| Signal | Type | Notes |
+| --- | --- | --- |
+| `/body/energy` | `0-1` | overall movement amount |
+| `/body/stillness` | `0-1` | inverse movement amount |
+| `/body/asymmetry` | `0-1` | left/right difference |
+| `/body/height` | `0-1` | crouch / reach proxy |
+| `/body/upper` | `0-1` | upper-body activity |
+| `/body/lower` | `0-1` | lower-body activity |
+| `/body/pulse` | trigger / `0-1` | sudden movement event |
+| `/body/presence` | `0-1` | visibility / confidence |
+
+VCV patch design note:
+
+- The current VCV project is intentionally highly self-generating IDM.
+- Body signals should gently modulate selected knobs, not directly control many raw parameters.
+- Avoid sending raw quaternion values to VCV as direct musical controls.
+- First-pass body controls should be smoothed and rate-limited, around `20-30 Hz`.
+- A good conceptual route is: audience body influences VCV, then VCV rhythm/state influences `WaterfallA`.
 
 Waterfall troubleshooting:
 

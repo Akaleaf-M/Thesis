@@ -632,12 +632,18 @@ Runtime settings can be saved from Play Mode:
 
 Current `DataWaterfallVertical` / `WaterfallA` direction:
 
-- Many small white / gray rectangular segments arranged into streams / columns.
-- Vertical falling / cascade motion.
-- Small cyan / green accents may appear as live signal pulses.
-- Intended as the next direct VCV-controlled data-waterfall surface.
+- `WaterfallA` has reached a usable visual preset state, but it is not final.
+- The visual language is a collective body signal field rather than a pure Matrix-style data rain.
+- Many small white / cold gray rectangular segments are arranged into vertical streams / columns.
+- Some streams are wider and slower body channels, suggesting pelvis / torso / limb / visibility data.
+- Streams can move in both directions: mostly top-to-bottom, with some bottom-to-top.
+- Some streams can briefly freeze / recompose during glitch or pulse events.
+- Small cyan / green accents may appear as live signal pulses, but green should stay rare.
+- Data labels are generated outside the camera view, pass through the frame with their original token unchanged, then disappear outside the frame.
+- `WaterfallA` labels can use slightly longer tokens than `WaterfallB`, such as `BODYMAP`, `STREAM04`, `FUSE_AVG`, `LATENCY`, `ROT_QTN`, and `VIS_LOW`.
+- Current dynamic candidates include stream direction ratio, density, speed, freeze probability, glitch amount, accent bursts, token visibility, and recompose/reset events.
 
-Direct VCV / rhythm control is still intended for `WaterfallA`, not `WaterfallB`. `WaterfallController` currently keeps public control methods as the future integration surface:
+Direct VCV / rhythm control is still intended for `WaterfallA`, not `WaterfallB`. `WaterfallController` currently keeps public control methods as the Unity-side future integration surface:
 
 ```csharp
 SetLanePadding(float value)
@@ -647,6 +653,63 @@ SetDensityMultiplier(float value)
 TriggerPulse(float amount)
 SetGlitchAmount(float value)
 TriggerAccent(float amount)
+```
+
+## Body / VCV Control Bridge Direction
+
+Author-confirmed current VCV context:
+
+- The VCV project is a highly self-generating IDM music system.
+- An earlier workflow used TouchDesigner (`mediapipe vcv.toe`) to receive MediaPipe / UPose-style data and send filtered control values to VCV.
+- That earlier direct body-control version sounded too dense / overloaded.
+- The current direction is to keep VCV self-generating, while letting audience movement gently and legibly modulate a small number of musical controls.
+
+Important architectural decision:
+
+- Do not modify the existing Unity communication behavior in `run_mediapipe.py`.
+- Do not modify the existing collective-body behavior in `aggregator.py`.
+- Preserve current ports:
+  - Unity solo streams: `52733-52736`
+  - Aggregator inputs: `52833-52836`
+  - Aggregator output to Unity: `53000`
+- Add body-to-VCV processing as a separate sidecar process, tentatively `body_control_bridge.py`.
+
+Recommended first version:
+
+```text
+existing MediaPipe / UPose pipeline
+-> aggregator.py
+-> existing collective mprot stream on 127.0.0.1:53000
+-> body_control_bridge.py
+-> smoothed 0-1 body control signals
+-> OSC / UDP to VCV on a new 54000+ port
+```
+
+Suggested first control signals:
+
+| Signal | Meaning | Possible VCV use |
+| --- | --- | --- |
+| `/body/energy` | overall motion amount | filter cutoff, density, clock probability |
+| `/body/stillness` | inverse of motion | reverb size, freeze amount, drone layer |
+| `/body/asymmetry` | left/right difference | stereo spread, modulation imbalance |
+| `/body/height` | crouch / reach / vertical posture proxy | pitch register, wavetable position |
+| `/body/upper` | upper-body activity | high-frequency / percussion modulation |
+| `/body/lower` | lower-body activity | bass / rhythm modulation |
+| `/body/pulse` | sudden movement trigger | gate, glitch, ratchet, sample-and-hold |
+| `/body/presence` | visibility / confidence | audience influence amount |
+
+Design constraints:
+
+- Do not send raw quaternions directly to many VCV knobs.
+- Prefer a small set of smoothed, stable `0-1` signals plus occasional triggers.
+- Target `20-30 Hz` output rather than full-rate noisy control.
+- Use a VCV port range separate from MediaPipe / UPose, e.g. `54000+`.
+- Body signals should modulate the self-generating patch, not take full absolute control of every parameter.
+- Later, `WaterfallA` can either receive direct VCV control, or receive the same high-level body controls. The cleaner conceptual route is:
+
+```text
+audience body -> body_control_bridge.py -> VCV
+VCV rhythm/state -> Unity WaterfallA
 ```
 
 ## Avatar Visual Style

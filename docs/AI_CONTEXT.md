@@ -41,13 +41,26 @@ Camera(s)
 - WaterfallB can react to system audio by listening to BlackHole 2ch through Unity Microphone input.
 - Current WaterfallB audio tuning is environment-sensitive; exhibition setup may require adjusting rmsFloor, rmsCeil, smoothing, lanePaddingMin, and lanePaddingMax.
 - WaterfallController and WaterfallAudioReactiveController can save Play Mode tuning to StreamingAssets JSON files.
-- WaterfallA is the next target for direct VCV / rhythm control.
+- WaterfallA is visually usable as the current preset, but not final.
+- WaterfallA uses DataWaterfallVertical as a bidirectional collective body signal field with offscreen-generated labels that keep their token while visible.
+- WaterfallA parameters should later become dynamically controllable, especially density, speed, bidirectional stream ratio, freeze/recompose events, glitch, accent, and label visibility.
+- WaterfallA is the next target for VCV / rhythm control.
+
+## Current VCV Direction
+- VCV is currently a highly self-generating IDM patch.
+- An older TouchDesigner workflow sent processed MediaPipe data to VCV, but direct body control made the music feel too dense.
+- Next development should not modify run_mediapipe.py or aggregator.py core Unity communication.
+- Preferred next step is a separate body_control_bridge.py sidecar.
+- First bridge version should listen to the existing collective mprot stream on 127.0.0.1:53000 and send smoothed 0-1 OSC/UDP signals to VCV on a new 54000+ port.
+- Candidate signals: /body/energy, /body/stillness, /body/asymmetry, /body/height, /body/upper, /body/lower, /body/pulse, /body/presence.
+- Do not send raw quaternions directly to many VCV knobs; keep the control surface small, smoothed, and musically legible.
+- Conceptual route: audience body -> body_control_bridge.py -> VCV; VCV rhythm/state -> Unity WaterfallA.
 
 ## Runtime Separation Notes
 - Fragment / UPose / avatar / aggregator are the main body pipeline and should remain isolated from WaterfallB audio work.
 - Waterfall output modes should keep BackgroundRoot active and fragment/avatar/UDP roots inactive, avoiding UPose UDP port conflicts.
 - MediaPipe / UPose ports are 52733-52736, 52833-52836, and 53000.
-- Future WaterfallA VCV communication should use a separate port range.
+- Future WaterfallA / VCV communication should use a separate port range, preferably 54000+.
 
 ## Coding Rules for AI
 - Make minimal, high-confidence changes

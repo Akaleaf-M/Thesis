@@ -117,6 +117,7 @@ public class WaterfallController : MonoBehaviour
     public float segmentGapMax = 0.28f;
     public float fallSpeedMin = 0.7f;
     public float fallSpeedMax = 3.2f;
+    [Range(0f, 1f)] public float upwardStreamProbability = 0.32f;
     public float alphaMin = 0.25f;
     public float alphaMax = 0.82f;
     public float brightnessMin = 0.55f;
@@ -126,6 +127,27 @@ public class WaterfallController : MonoBehaviour
     public bool verticalShowColumnGuides = true;
     public int verticalGuideEveryColumns = 12;
     public float verticalFrameInset = 0.08f;
+    public int verticalBodyChannelEveryColumns = 18;
+    public float verticalBodyChannelWidthMultiplier = 2.4f;
+    [Range(0f, 1f)] public float verticalBodyChannelProbability = 0.16f;
+    [Range(0f, 1f)] public float verticalFreezeProbability = 0.18f;
+    public Vector2 verticalFreezeDurationRange = new Vector2(0.08f, 0.28f);
+
+    [Header("DataWaterfallVertical Labels")]
+    public bool verticalShowDataLabels = true;
+    public int verticalLabelPoolSize = 54;
+    public int verticalLabelStreamStep = 8;
+    public float verticalLabelXOffset = 0.1f;
+    public float verticalLabelFontSize = 1f;
+    public float verticalLabelOffscreenMargin = 1.4f;
+    public int verticalLabelMaxTokenLength = 9;
+    [Range(0f, 1f)] public float verticalLabelAlpha = 0.62f;
+    [Range(0f, 1f)] public float verticalLabelAccentChance = 0.12f;
+    public Color verticalLabelColor = Color.white;
+    public Color verticalLabelAccentColor = new Color(0f, 0.82f, 1f, 1f);
+    public string[] verticalBodyTokens = new string[] { "PEL", "TORS", "L_SH", "R_EL", "HIP", "KNEE", "ROT_QTN", "VIS_LOW", "BODYMAP" };
+    public string[] verticalStreamTokens = new string[] { "P01", "P02", "P03", "P04", "COL", "AVG", "FUSE", "SYNC", "STREAM04", "FUSE_AVG" };
+    public string[] verticalSignalTokens = new string[] { "LOSS", "QTN", "LAT", "BUF", "DROP", "SCAN", "MERG", "RSET", "LATENCY", "RESYNC" };
 
     [Header("Runtime Objects")]
     public string meshRootName = "WaterfallRuntimeMeshes";
@@ -133,6 +155,7 @@ public class WaterfallController : MonoBehaviour
 
     [Header("Saved Settings")]
     public bool loadSavedSettingsOnAwake = true;
+    public bool loadSavedSettingsOnlyForMatchingPreset = true;
     public string savedSettingsFileName = "WaterfallB_ControllerSettings.json";
 
     private const int DimGroup = 0;
@@ -190,8 +213,12 @@ public class WaterfallController : MonoBehaviour
         public float x;
         public float y;
         public float speed;
+        public float direction;
         public float height;
         public float phase;
+        public int column;
+        public bool bodyChannel;
+        public float freezeTimer;
         public VerticalSegment[] segments;
     }
 
@@ -263,9 +290,9 @@ public class WaterfallController : MonoBehaviour
         }
         else
         {
-            SetAllDataLabelsActive(false);
             UpdateDataWaterfallVertical();
             RebuildDataWaterfallVerticalMeshes();
+            UpdateVerticalDataLabels();
         }
 
         ApplyLayerColors();
@@ -293,24 +320,44 @@ public class WaterfallController : MonoBehaviour
         baseAlpha = 0.58f;
         globalIntensity = 0.9f;
         densityMultiplier = 1f;
-        speedMultiplier = 1f;
-        accentProbability = 0.014f;
-        glitchProbability = 0.045f;
-        pulseProbability = 0.026f;
-        verticalStreamCount = 240;
+        speedMultiplier = 0.72f;
+        accentProbability = 0.01f;
+        glitchProbability = 0.06f;
+        pulseProbability = 0.035f;
+        defaultColor = new Color(0.78f, 0.8f, 0.82f, 1f);
+        dimColor = new Color(0.28f, 0.3f, 0.32f, 1f);
+        brightColor = new Color(0.96f, 0.98f, 1f, 1f);
+        accentColor = new Color(0f, 0.82f, 1f, 1f);
+        secondaryAccentColor = new Color(0.36f, 1f, 0.62f, 1f);
+        verticalStreamCount = 210;
         verticalColumnCount = 144;
-        segmentsPerStreamMin = 4;
-        segmentsPerStreamMax = 14;
-        segmentWidthMin = 0.01f;
-        segmentWidthMax = 0.052f;
-        segmentHeightMin = 0.026f;
-        segmentHeightMax = 0.24f;
-        segmentGapMin = 0.028f;
-        segmentGapMax = 0.22f;
-        fallSpeedMin = 0.9f;
-        fallSpeedMax = 3.8f;
-        jitterAmount = 0.022f;
-        resetProbability = 0.0035f;
+        segmentsPerStreamMin = 3;
+        segmentsPerStreamMax = 12;
+        segmentWidthMin = 0.008f;
+        segmentWidthMax = 0.045f;
+        segmentHeightMin = 0.035f;
+        segmentHeightMax = 0.28f;
+        segmentGapMin = 0.055f;
+        segmentGapMax = 0.34f;
+        fallSpeedMin = 0.32f;
+        fallSpeedMax = 2.3f;
+        upwardStreamProbability = 0.32f;
+        jitterAmount = 0.018f;
+        resetProbability = 0.0028f;
+        verticalShowColumnGuides = true;
+        verticalGuideEveryColumns = 18;
+        verticalBodyChannelEveryColumns = 18;
+        verticalBodyChannelWidthMultiplier = 2.4f;
+        verticalBodyChannelProbability = 0.16f;
+        verticalFreezeProbability = 0.18f;
+        verticalShowDataLabels = true;
+        verticalLabelPoolSize = 54;
+        verticalLabelStreamStep = 8;
+        verticalLabelXOffset = 0.1f;
+        verticalLabelFontSize = 1f;
+        verticalLabelOffscreenMargin = 1.4f;
+        verticalLabelAlpha = 0.62f;
+        verticalLabelAccentChance = 0.12f;
     }
 
     void ApplyWaterfallBPreset()
@@ -443,6 +490,15 @@ public class WaterfallController : MonoBehaviour
 
         string json = File.ReadAllText(path);
         WaterfallControllerSettings settings = JsonUtility.FromJson<WaterfallControllerSettings>(json);
+
+        if (loadSavedSettingsOnlyForMatchingPreset && settings != null && settings.preset != preset)
+        {
+            Debug.Log(
+                $"[WaterfallController] Skipped saved settings from {path} because saved preset {settings.preset} does not match active preset {preset}."
+            );
+            return;
+        }
+
         ApplySettings(settings);
         ClampControlRanges();
         Debug.Log($"[WaterfallController] Loaded settings from {path}");
@@ -478,6 +534,47 @@ public class WaterfallController : MonoBehaviour
             scaffoldAlphaMultiplier = scaffoldAlphaMultiplier,
             pulseDecay = pulseDecay,
             accentDecay = accentDecay,
+            verticalStreamCount = verticalStreamCount,
+            verticalColumnCount = verticalColumnCount,
+            segmentsPerStreamMin = segmentsPerStreamMin,
+            segmentsPerStreamMax = segmentsPerStreamMax,
+            segmentWidthMin = segmentWidthMin,
+            segmentWidthMax = segmentWidthMax,
+            segmentHeightMin = segmentHeightMin,
+            segmentHeightMax = segmentHeightMax,
+            segmentGapMin = segmentGapMin,
+            segmentGapMax = segmentGapMax,
+            fallSpeedMin = fallSpeedMin,
+            fallSpeedMax = fallSpeedMax,
+            upwardStreamProbability = upwardStreamProbability,
+            alphaMin = alphaMin,
+            alphaMax = alphaMax,
+            brightnessMin = brightnessMin,
+            brightnessMax = brightnessMax,
+            jitterAmount = jitterAmount,
+            resetProbability = resetProbability,
+            verticalShowColumnGuides = verticalShowColumnGuides,
+            verticalGuideEveryColumns = verticalGuideEveryColumns,
+            verticalFrameInset = verticalFrameInset,
+            verticalBodyChannelEveryColumns = verticalBodyChannelEveryColumns,
+            verticalBodyChannelWidthMultiplier = verticalBodyChannelWidthMultiplier,
+            verticalBodyChannelProbability = verticalBodyChannelProbability,
+            verticalFreezeProbability = verticalFreezeProbability,
+            verticalFreezeDurationRange = verticalFreezeDurationRange,
+            verticalShowDataLabels = verticalShowDataLabels,
+            verticalLabelPoolSize = verticalLabelPoolSize,
+            verticalLabelStreamStep = verticalLabelStreamStep,
+            verticalLabelXOffset = verticalLabelXOffset,
+            verticalLabelFontSize = verticalLabelFontSize,
+            verticalLabelOffscreenMargin = verticalLabelOffscreenMargin,
+            verticalLabelMaxTokenLength = verticalLabelMaxTokenLength,
+            verticalLabelAlpha = verticalLabelAlpha,
+            verticalLabelAccentChance = verticalLabelAccentChance,
+            verticalLabelColor = verticalLabelColor,
+            verticalLabelAccentColor = verticalLabelAccentColor,
+            verticalBodyTokens = verticalBodyTokens,
+            verticalStreamTokens = verticalStreamTokens,
+            verticalSignalTokens = verticalSignalTokens,
             horizontalUnitCount = horizontalUnitCount,
             horizontalRowCount = horizontalRowCount,
             horizontalWidthRange = horizontalWidthRange,
@@ -548,6 +645,47 @@ public class WaterfallController : MonoBehaviour
         scaffoldAlphaMultiplier = settings.scaffoldAlphaMultiplier;
         pulseDecay = settings.pulseDecay;
         accentDecay = settings.accentDecay;
+        verticalStreamCount = settings.verticalStreamCount;
+        verticalColumnCount = settings.verticalColumnCount;
+        segmentsPerStreamMin = settings.segmentsPerStreamMin;
+        segmentsPerStreamMax = settings.segmentsPerStreamMax;
+        segmentWidthMin = settings.segmentWidthMin;
+        segmentWidthMax = settings.segmentWidthMax;
+        segmentHeightMin = settings.segmentHeightMin;
+        segmentHeightMax = settings.segmentHeightMax;
+        segmentGapMin = settings.segmentGapMin;
+        segmentGapMax = settings.segmentGapMax;
+        fallSpeedMin = settings.fallSpeedMin;
+        fallSpeedMax = settings.fallSpeedMax;
+        upwardStreamProbability = settings.upwardStreamProbability;
+        alphaMin = settings.alphaMin;
+        alphaMax = settings.alphaMax;
+        brightnessMin = settings.brightnessMin;
+        brightnessMax = settings.brightnessMax;
+        jitterAmount = settings.jitterAmount;
+        resetProbability = settings.resetProbability;
+        verticalShowColumnGuides = settings.verticalShowColumnGuides;
+        verticalGuideEveryColumns = settings.verticalGuideEveryColumns;
+        verticalFrameInset = settings.verticalFrameInset;
+        verticalBodyChannelEveryColumns = settings.verticalBodyChannelEveryColumns;
+        verticalBodyChannelWidthMultiplier = settings.verticalBodyChannelWidthMultiplier;
+        verticalBodyChannelProbability = settings.verticalBodyChannelProbability;
+        verticalFreezeProbability = settings.verticalFreezeProbability;
+        verticalFreezeDurationRange = settings.verticalFreezeDurationRange;
+        verticalShowDataLabels = settings.verticalShowDataLabels;
+        verticalLabelPoolSize = settings.verticalLabelPoolSize;
+        verticalLabelStreamStep = settings.verticalLabelStreamStep;
+        verticalLabelXOffset = settings.verticalLabelXOffset;
+        verticalLabelFontSize = settings.verticalLabelFontSize;
+        verticalLabelOffscreenMargin = settings.verticalLabelOffscreenMargin;
+        verticalLabelMaxTokenLength = settings.verticalLabelMaxTokenLength;
+        verticalLabelAlpha = settings.verticalLabelAlpha;
+        verticalLabelAccentChance = settings.verticalLabelAccentChance;
+        verticalLabelColor = settings.verticalLabelColor;
+        verticalLabelAccentColor = settings.verticalLabelAccentColor;
+        verticalBodyTokens = settings.verticalBodyTokens;
+        verticalStreamTokens = settings.verticalStreamTokens;
+        verticalSignalTokens = settings.verticalSignalTokens;
         horizontalUnitCount = settings.horizontalUnitCount;
         horizontalRowCount = settings.horizontalRowCount;
         horizontalWidthRange = settings.horizontalWidthRange;
@@ -616,6 +754,47 @@ public class WaterfallController : MonoBehaviour
         public float scaffoldAlphaMultiplier;
         public float pulseDecay;
         public float accentDecay;
+        public int verticalStreamCount;
+        public int verticalColumnCount;
+        public int segmentsPerStreamMin;
+        public int segmentsPerStreamMax;
+        public float segmentWidthMin;
+        public float segmentWidthMax;
+        public float segmentHeightMin;
+        public float segmentHeightMax;
+        public float segmentGapMin;
+        public float segmentGapMax;
+        public float fallSpeedMin;
+        public float fallSpeedMax;
+        public float upwardStreamProbability;
+        public float alphaMin;
+        public float alphaMax;
+        public float brightnessMin;
+        public float brightnessMax;
+        public float jitterAmount;
+        public float resetProbability;
+        public bool verticalShowColumnGuides;
+        public int verticalGuideEveryColumns;
+        public float verticalFrameInset;
+        public int verticalBodyChannelEveryColumns;
+        public float verticalBodyChannelWidthMultiplier;
+        public float verticalBodyChannelProbability;
+        public float verticalFreezeProbability;
+        public Vector2 verticalFreezeDurationRange;
+        public bool verticalShowDataLabels;
+        public int verticalLabelPoolSize;
+        public int verticalLabelStreamStep;
+        public float verticalLabelXOffset;
+        public float verticalLabelFontSize;
+        public float verticalLabelOffscreenMargin;
+        public int verticalLabelMaxTokenLength;
+        public float verticalLabelAlpha;
+        public float verticalLabelAccentChance;
+        public Color verticalLabelColor;
+        public Color verticalLabelAccentColor;
+        public string[] verticalBodyTokens;
+        public string[] verticalStreamTokens;
+        public string[] verticalSignalTokens;
         public int horizontalUnitCount;
         public int horizontalRowCount;
         public Vector2 horizontalWidthRange;
@@ -1034,7 +1213,7 @@ public class WaterfallController : MonoBehaviour
         if (meshRoot == null)
             return;
 
-        int count = Mathf.Max(0, horizontalLabelPoolSize);
+        int count = Mathf.Max(0, Mathf.Max(horizontalLabelPoolSize, verticalLabelPoolSize));
         dataLabels = new DataLabel[count];
 
         for (int i = 0; i < dataLabels.Length; i++)
@@ -1116,11 +1295,10 @@ public class WaterfallController : MonoBehaviour
 
         SetDataLabelActive(label, true);
 
-        if (Time.time >= label.nextTokenTime || string.IsNullOrEmpty(label.text.text))
+        if (string.IsNullOrEmpty(label.text.text))
         {
             label.text.text = PickDataLabelToken(tokens);
             label.color = Random.value < horizontalLabelAccentChance ? horizontalLabelAccentColor : horizontalLabelColor;
-            label.nextTokenTime = Time.time + Random.Range(0.35f, 1.2f);
         }
 
         label.transform.localPosition = new Vector3(x, y, zOffset - 0.05f);
@@ -1140,19 +1318,25 @@ public class WaterfallController : MonoBehaviour
                 return audioToken;
         }
 
+        return PickToken(tokens, "SIG");
+    }
+
+    string PickToken(string[] tokens, string fallback)
+    {
         if (tokens == null || tokens.Length == 0)
-            return "SIG";
+            return fallback;
 
         string token = tokens[Random.Range(0, tokens.Length)];
         if (string.IsNullOrWhiteSpace(token))
-            return "SIG";
+            return fallback;
 
         token = token.Trim();
         if (token.Length < 3)
             token = token.PadRight(3, '0');
 
-        if (token.Length > 6)
-            token = token.Substring(0, 6);
+        int maxLength = Mathf.Max(3, visualMode == WaterfallVisualMode.DataWaterfallVertical ? verticalLabelMaxTokenLength : 6);
+        if (token.Length > maxLength)
+            token = token.Substring(0, maxLength);
 
         return token;
     }
@@ -1218,6 +1402,12 @@ public class WaterfallController : MonoBehaviour
             return;
 
         label.active = active;
+        if (!active)
+        {
+            label.text.text = "";
+            label.nextTokenTime = 0f;
+        }
+
         label.text.gameObject.SetActive(active);
     }
 
@@ -1234,17 +1424,40 @@ public class WaterfallController : MonoBehaviour
             if (i >= activeCount)
                 continue;
 
-            stream.y -= stream.speed * Mathf.Max(0f, speedMultiplier) * (1f + pulse * 0.6f) * Time.deltaTime;
+            if (stream.freezeTimer > 0f)
+            {
+                stream.freezeTimer -= Time.deltaTime;
+            }
+            else
+            {
+                stream.y += stream.direction * stream.speed * Mathf.Max(0f, speedMultiplier) * (1f + pulse * 0.6f) * Time.deltaTime;
+            }
 
             if (isGlitching && Random.value < glitchProbability)
+            {
                 stream.x += Random.Range(-jitterAmount, jitterAmount) * 8f;
+
+                if (Random.value < verticalFreezeProbability)
+                    stream.freezeTimer = RandomRange(verticalFreezeDurationRange, 0.01f);
+            }
 
             if (Random.value < (resetProbability + pulse * pulseProbability * 0.4f) * Time.deltaTime)
                 ResetVerticalStream(stream, true);
 
-            if (stream.y < -worldHeight * 0.5f - stream.height)
+            if (StreamExitedVerticalBounds(stream))
                 ResetVerticalStream(stream, false);
         }
+    }
+
+    bool StreamExitedVerticalBounds(VerticalStream stream)
+    {
+        if (stream == null)
+            return false;
+
+        if (stream.direction < 0f)
+            return stream.y < -worldHeight * 0.5f - stream.height;
+
+        return stream.y > worldHeight * 0.5f + stream.height;
     }
 
     void RebuildDataWaterfallVerticalMeshes()
@@ -1277,18 +1490,108 @@ public class WaterfallController : MonoBehaviour
         }
     }
 
+    void UpdateVerticalDataLabels()
+    {
+        if (!verticalShowDataLabels || verticalStreams == null || dataLabels == null || dataLabels.Length == 0)
+        {
+            SetAllDataLabelsActive(false);
+            return;
+        }
+
+        int activeCount = Mathf.Clamp(Mathf.RoundToInt(verticalStreams.Length * Mathf.Max(0f, densityMultiplier)), 0, verticalStreams.Length);
+        int streamStep = Mathf.Max(1, verticalLabelStreamStep);
+        int labelIndex = 0;
+        float topLimit = worldHeight * 0.5f + Mathf.Max(0f, verticalLabelOffscreenMargin);
+        float bottomLimit = -worldHeight * 0.5f - Mathf.Max(0f, verticalLabelOffscreenMargin);
+
+        for (int i = 0; i < activeCount && labelIndex < dataLabels.Length; i += streamStep)
+        {
+            DataLabel label = dataLabels[labelIndex];
+            VerticalStream stream = verticalStreams[i];
+            if (stream == null || stream.segments == null || stream.segments.Length == 0)
+            {
+                SetDataLabelActive(label, false);
+                labelIndex++;
+                continue;
+            }
+
+            VerticalSegment segment = stream.segments[Mathf.Abs(stream.column + i) % stream.segments.Length];
+            if (segment == null)
+            {
+                SetDataLabelActive(label, false);
+                labelIndex++;
+                continue;
+            }
+
+            float x = stream.x + segment.offsetX + segment.width + verticalLabelXOffset;
+            float y = stream.y + segment.offsetY - segment.height * 0.5f;
+            if (y > topLimit || y < bottomLimit)
+            {
+                SetDataLabelActive(label, false);
+                labelIndex++;
+                continue;
+            }
+
+            string[] tokens = PickVerticalTokenBank(stream);
+            ApplyVerticalDataLabel(label, x, y, tokens);
+            labelIndex++;
+        }
+
+        for (int i = labelIndex; i < dataLabels.Length; i++)
+            SetDataLabelActive(dataLabels[i], false);
+    }
+
+    string[] PickVerticalTokenBank(VerticalStream stream)
+    {
+        if (stream != null && stream.bodyChannel)
+            return verticalBodyTokens;
+
+        float roll = Random.value;
+        if (roll < 0.52f)
+            return verticalStreamTokens;
+
+        return verticalSignalTokens;
+    }
+
+    void ApplyVerticalDataLabel(DataLabel label, float x, float y, string[] tokens)
+    {
+        if (label == null || label.text == null || label.transform == null)
+            return;
+
+        SetDataLabelActive(label, true);
+
+        if (string.IsNullOrEmpty(label.text.text))
+        {
+            label.text.text = PickToken(tokens, "COL");
+            label.color = Random.value < verticalLabelAccentChance ? verticalLabelAccentColor : verticalLabelColor;
+        }
+
+        label.transform.localPosition = new Vector3(x, y, zOffset - 0.05f);
+        label.text.fontSize = verticalLabelFontSize;
+
+        Color color = label.color;
+        color.a = Mathf.Clamp01(verticalLabelAlpha * Mathf.Max(0f, globalIntensity));
+        label.text.color = color;
+    }
+
     void ResetVerticalStream(VerticalStream stream, bool randomizeY)
     {
         int columns = Mathf.Max(1, verticalColumnCount);
         int column = Random.Range(0, columns);
         float step = worldWidth / columns;
         float left = -worldWidth * 0.5f;
+        int bodyEvery = Mathf.Max(1, verticalBodyChannelEveryColumns);
+        bool bodyColumn = column % bodyEvery == 0 || Random.value < verticalBodyChannelProbability;
 
-        stream.x = left + step * (column + 0.5f) + Random.Range(-step * 0.22f, step * 0.22f);
-        stream.y = randomizeY
-            ? Random.Range(-worldHeight * 0.5f, worldHeight * 0.5f)
-            : worldHeight * 0.5f + Random.Range(0f, worldHeight * 0.35f);
+        stream.column = column;
+        stream.bodyChannel = bodyColumn;
+        stream.freezeTimer = 0f;
+        stream.x = left + step * (column + 0.5f) + Random.Range(-step * (bodyColumn ? 0.08f : 0.28f), step * (bodyColumn ? 0.08f : 0.28f));
+        stream.direction = Random.value < upwardStreamProbability ? 1f : -1f;
+        stream.y = ResolveVerticalStreamStartY(stream.direction, randomizeY);
         stream.speed = Random.Range(Mathf.Max(0f, fallSpeedMin), Mathf.Max(fallSpeedMin, fallSpeedMax));
+        if (bodyColumn)
+            stream.speed *= Random.Range(0.42f, 0.78f);
         stream.phase = Random.value * 100f;
 
         int count = Random.Range(Mathf.Max(1, segmentsPerStreamMin), Mathf.Max(segmentsPerStreamMin + 1, segmentsPerStreamMax + 1));
@@ -1299,10 +1602,16 @@ public class WaterfallController : MonoBehaviour
         {
             VerticalSegment segment = new VerticalSegment();
             segment.width = Random.Range(Mathf.Max(0.001f, segmentWidthMin), Mathf.Max(segmentWidthMin, segmentWidthMax));
+            if (bodyColumn)
+                segment.width *= Random.Range(1.35f, Mathf.Max(1.36f, verticalBodyChannelWidthMultiplier));
             segment.height = Random.Range(Mathf.Max(0.001f, segmentHeightMin), Mathf.Max(segmentHeightMin, segmentHeightMax));
-            segment.offsetX = Random.Range(-jitterAmount, jitterAmount);
+            if (bodyColumn && Random.value < 0.24f)
+                segment.height *= Random.Range(1.25f, 2.2f);
+            segment.offsetX = Random.Range(-jitterAmount, jitterAmount) * (bodyColumn ? 0.45f : 1f);
             segment.offsetY = cursor;
             float brightnessBias = Mathf.InverseLerp(brightnessMin, brightnessMax, Random.Range(brightnessMin, brightnessMax));
+            if (bodyColumn)
+                brightnessBias = Mathf.Clamp01(brightnessBias + 0.18f);
             segment.group = PickSignalGroup(brightnessBias);
             segment.visible = true;
             cursor += segment.height + Random.Range(Mathf.Max(0.001f, segmentGapMin), Mathf.Max(segmentGapMin, segmentGapMax));
@@ -1310,6 +1619,17 @@ public class WaterfallController : MonoBehaviour
         }
 
         stream.height = cursor;
+    }
+
+    float ResolveVerticalStreamStartY(float direction, bool randomizeY)
+    {
+        if (randomizeY)
+            return Random.Range(-worldHeight * 0.5f, worldHeight * 0.5f);
+
+        if (direction < 0f)
+            return worldHeight * 0.5f + Random.Range(0f, worldHeight * 0.35f);
+
+        return -worldHeight * 0.5f - Random.Range(0f, worldHeight * 0.35f);
     }
 
     int PickSignalGroup(float brightnessBias)
@@ -1396,6 +1716,14 @@ public class WaterfallController : MonoBehaviour
         {
             float x = -worldWidth * 0.5f + step * column;
             AddLine(lineLayers[DimGroup], new Vector3(x, top, z), new Vector3(x, bottom, z));
+        }
+
+        int bodyEvery = Mathf.Max(1, verticalBodyChannelEveryColumns);
+        for (int column = 0; column < columns; column += bodyEvery)
+        {
+            float x = -worldWidth * 0.5f + step * (column + 0.5f);
+            float channelWidth = step * Mathf.Max(1f, verticalBodyChannelWidthMultiplier);
+            AddRectOutline(lineLayers[DimGroup], x - channelWidth * 0.5f, top, channelWidth, Mathf.Max(0.01f, top - bottom));
         }
     }
 
