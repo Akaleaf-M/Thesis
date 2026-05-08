@@ -30,6 +30,10 @@ public class OutputModeManager : MonoBehaviour
     public OutputMode defaultMode = OutputMode.Fragment;
     public bool logSelectedMode = true;
 
+    [Header("Editor Preview")]
+    public bool useEditorPreviewMode = false;
+    public OutputMode editorPreviewMode = OutputMode.WaterfallA;
+
     [Header("Root Name Fallback")]
     public bool useRootNameFallback = true;
     public string[] waterfallRootNames = new string[] { "BackgroundRoot" };
@@ -70,8 +74,18 @@ public class OutputModeManager : MonoBehaviour
     {
         Application.runInBackground = true;
 
-        CurrentMode = GetRequestedMode(defaultMode);
+        CurrentMode = GetRequestedMode(GetDefaultMode());
         ApplyMode(CurrentMode);
+    }
+
+    OutputMode GetDefaultMode()
+    {
+#if UNITY_EDITOR
+        if (useEditorPreviewMode)
+            return editorPreviewMode;
+#endif
+
+        return defaultMode;
     }
 
     void ApplyMode(OutputMode mode)

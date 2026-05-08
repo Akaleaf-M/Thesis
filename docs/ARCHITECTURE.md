@@ -481,6 +481,132 @@ Unity appears to generate the final visual output through cameras, render textur
 
 Author-confirmed development assumption: during development, treat Unity output as a single window. Final projection mapping is not decided yet; the likely later workflow is to use MadMapper or Resolume.
 
+## Build / Output Mode
+
+Author-confirmed platform direction: the final project will run on Mac / Mac Studio. Windows remains useful for source editing and local development, but Windows build is not a current target.
+
+The Unity project now includes `OutputModeManager.cs`, which selects an output mode at runtime from command line arguments:
+
+```text
+--mode Fragment
+--mode WaterfallA
+--mode WaterfallB
+--mode Full
+```
+
+The current output modes are:
+
+| Mode | Current role |
+| --- | --- |
+| `Fragment` | Main fragment/avatar composition mode |
+| `WaterfallA` | Background / waterfall output mode A |
+| `WaterfallB` | Background / waterfall output mode B |
+| `Full` | Enables all root objects for full scene output |
+
+`OutputModeManager` can set resolution through `Screen.SetResolution(...)` and can enable/disable scene root objects. Its current use should be understood as part of the Mac final/demo build workflow.
+
+## Waterfall Visual System
+
+Waterfall visuals are currently handled inside `BackgroundRoot`.
+
+Author-confirmed current output-mode behavior:
+
+- `Fragment` output: `BackgroundRoot` should be inactive.
+- `WaterfallA` / `WaterfallB` output: `BackgroundRoot` should stay active, while fragment/avatar/UDP roots should be inactive.
+- This separation avoids UDP port conflicts because waterfall windows do not need MediaPipe / UPose / avatar receivers.
+- `SceneB` is not part of the current waterfall visual direction.
+
+Current main script:
+
+- `Unity/UPose/Assets/Scripts/WaterfallController.cs`
+
+`WaterfallController` is independent from:
+
+- `FragmentSlot.cs`
+- `FragmentController.cs`
+- `UPose.cs`
+- `ReadyPlayerAvatar.cs`
+- Python MediaPipe scripts
+- `aggregator.py`
+
+It uses runtime `Mesh` objects and runtime materials to draw procedural rectangular units. It does not create or destroy large numbers of GameObjects per frame.
+
+Current visual modes:
+
+| Mode | Current role | Visual language |
+| --- | --- | --- |
+| `TestPatternHorizontal` | Current `WaterfallB` direction | Horizontal barcode-like lanes, dense vertical stripes, short/long signal bars, outline rectangles, calibration / test-pattern language |
+| `DataWaterfallVertical` | Current `WaterfallA` direction | Vertical streams made from small rectangular data units, falling/cascade motion, denser data-waterfall language |
+
+Current preset mapping:
+
+| Output mode | Resolution | `WaterfallController` preset | Default visual mode |
+| --- | --- | --- | --- |
+| `WaterfallA` | `1280 x 800` | `WaterfallA` | `DataWaterfallVertical` |
+| `WaterfallB` | `1024 x 768` | `WaterfallB` | `TestPatternHorizontal` |
+
+`WaterfallController` can read `OutputModeManager.CurrentMode` when `useOutputModeManagerPreset` is enabled, then select the matching preset.
+
+Current `TestPatternHorizontal` direction:
+
+- Mostly black background with white / light gray rectangular units.
+- Barcode-like rows / lanes, currently using strict row and slot alignment.
+- Most elements are vertical stripe units moving horizontally.
+- Occasional X-axis long rectangles are allowed as signal overlays.
+- Green / cyan are only small accent signals, controlled by `accentProbability`, `accentColor`, and `secondaryAccentColor`.
+- Movement is continuous by default; stepped movement can be re-enabled with `horizontalUseSteppedMotion`.
+
+Important current Inspector parameters for `TestPatternHorizontal`:
+
+- `horizontalRowCount`
+- `horizontalUnitsPerRow`
+- `horizontalBarcodeAlignment`
+- `horizontalStripeProbability`
+- `horizontalStripeWidthRange`
+- `horizontalStripeHeightRange`
+- `horizontalLongBarProbability`
+- `horizontalLongWidthRange`
+- `horizontalSpeedRange`
+- `speedMultiplier`
+- `densityMultiplier`
+- `accentProbability`
+- `glitchProbability`
+- `pulseProbability`
+
+Current `DataWaterfallVertical` direction:
+
+- Many small white / gray rectangular segments arranged into streams / columns.
+- Vertical falling / cascade motion.
+- Small cyan / green accents may appear as live signal pulses.
+- Intended as a future rhythm-reactive data-waterfall surface.
+
+Future VCV / rhythm control is not implemented yet. `WaterfallController` currently keeps public control methods as a future integration surface:
+
+```csharp
+SetIntensity(float value)
+SetSpeedMultiplier(float value)
+SetDensityMultiplier(float value)
+TriggerPulse(float amount)
+SetGlitchAmount(float value)
+TriggerAccent(float amount)
+```
+
+## Avatar Visual Style
+
+`ReadyPlayerAvatar.cs` now includes an avatar material override and glitch visual system.
+
+Current components:
+
+- `Unity/UPose/Assets/Materials/MAT_Avatar_Unlit.mat`
+- `Unity/UPose/Assets/Shaders/AvatarGlitchUnlit.shader`
+- `ReadyPlayerAvatar.overrideAvatarMaterials`
+- `ReadyPlayerAvatar.avatarMaterial`
+- `ReadyPlayerAvatar.enableAvatarGlitch`
+- video glitch parameters
+- mesh glitch parameters
+
+Author confirmation: avatar glitch Inspector settings have been personally tested by the author and this visual development thread is temporarily complete. Future AI changes should not continue tuning avatar glitch unless explicitly requested.
+
 TODO: document the actual projection output path after checking the Unity scene and final hardware workflow:
 
 - final camera name
@@ -494,6 +620,8 @@ TODO: document the actual projection output path after checking the Unity scene 
 
 - Active Unity scene for thesis presentation: `DanceScene.unity`.
 - Confirmed object hierarchy, Inspector assignments, and Play Mode behavior: motion tracking objects, avatar bindings, `FragmentController` arrays, `BoneTrackingCamera` targets, `FragmentSlot` prefab internals, UDP listeners, GLTF loading, fragment motion, and Console status are documented above.
+- Author-confirmed final runtime platform: Mac / Mac Studio. Windows build is not a current target.
+- Author-confirmed avatar glitch Inspector settings have been tested and are temporarily complete.
 - TODO: exact final projection mapping tool and routing. Development assumes single-window Unity output first, then MadMapper or Resolume later.
 - TODO: exact Python environment setup and dependency versions.
 - Unity Inspector-confirmed port design: `52833-52836` are aggregator inputs for collective body; `52733-52736` are Unity solo streams; `53000` is Unity collective stream.

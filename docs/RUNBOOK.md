@@ -394,6 +394,120 @@ pkill -f aggregator.py
 
 If Terminal.app asks for permission to control the computer, allow Terminal / osascript accessibility automation, then rerun the launcher. If permission is not granted, the script should fall back to background/logs mode.
 
+## Mac Build / Output Modes
+
+Author-confirmed project direction: the final installation/demo runtime is Mac / Mac Studio. Windows remains available for editing and local testing, but Windows build is not a current target.
+
+`DanceScene.unity` includes `OutputModeManager.cs`. For built Mac apps, output mode can be selected with command line arguments:
+
+```bash
+./UPose.app/Contents/MacOS/UPose --mode Fragment
+./UPose.app/Contents/MacOS/UPose --mode WaterfallA
+./UPose.app/Contents/MacOS/UPose --mode WaterfallB
+./UPose.app/Contents/MacOS/UPose --mode Full
+```
+
+Current modes:
+
+| Mode | Notes |
+| --- | --- |
+| `Fragment` | Main fragment/avatar composition mode |
+| `WaterfallA` | Background / waterfall output mode A |
+| `WaterfallB` | Background / waterfall output mode B |
+| `Full` | Enables all root objects |
+
+`OutputModeManager` may set window resolution and enable/disable root GameObjects. If an expected layer is missing in a Mac build, first check the selected `--mode` and the `OutputModeManager` Inspector settings in `DanceScene`.
+
+### Waterfall Visual Preview
+
+Waterfall visuals currently live under `BackgroundRoot`.
+
+For Unity Editor preview:
+
+1. Select `OutputModeManager`.
+2. Enable `Use Editor Preview Mode`.
+3. Set `Editor Preview Mode` to `WaterfallA` or `WaterfallB`.
+4. Enter Play Mode.
+5. Confirm `BackgroundRoot` stays active.
+
+If `BackgroundRoot` turns inactive in Play Mode, check `OutputModeManager.defaultMode` and `Use Editor Preview Mode`. In `Fragment` mode, `OutputModeManager` intentionally disables `BackgroundRoot`.
+
+Current waterfall mode expectations:
+
+| Mode | Resolution | Visual mode | Notes |
+| --- | --- | --- | --- |
+| `WaterfallA` | `1280 x 800` | `DataWaterfallVertical` | Vertical data streams made from small rectangular units |
+| `WaterfallB` | `1024 x 768` | `TestPatternHorizontal` | Barcode-like horizontal test pattern / calibration lanes |
+
+Current `WaterfallB` visual direction:
+
+- Dense barcode-like rows.
+- Mostly vertical stripe rectangles moving horizontally.
+- Occasional long horizontal rectangles as signal overlays.
+- White / gray is the main visual language.
+- Cyan / green are small live-signal accents only.
+
+Useful `WaterfallController` controls:
+
+| Parameter | Use |
+| --- | --- |
+| `visualMode` | Switch between `TestPatternHorizontal` and `DataWaterfallVertical` |
+| `speedMultiplier` | Global motion speed |
+| `densityMultiplier` | Number of visible units / streams |
+| `globalIntensity` | Overall brightness / alpha intensity |
+| `accentProbability` | Chance of cyan / green accent units |
+| `glitchProbability` | Chance of glitch / resample events |
+| `pulseProbability` | Chance of pulse-related resets / blink behavior |
+| `horizontalRowCount` | Number of barcode-like horizontal lanes |
+| `horizontalUnitsPerRow` | Density per barcode lane |
+| `horizontalBarcodeAlignment` | Keeps horizontal mode aligned to strict row / slot positions |
+| `horizontalStripeProbability` | Ratio of vertical barcode stripe units |
+| `horizontalStripeWidthRange` | Width range of barcode stripe units |
+| `horizontalStripeHeightRange` | Height range of barcode stripe units |
+| `horizontalLongBarProbability` | Chance of occasional X-axis long signal bars |
+| `horizontalSpeedRange` | Per-unit speed range for horizontal mode |
+| `horizontalUseSteppedMotion` | Optional stepped / test-signal movement; current default is continuous movement |
+
+Future VCV / rhythm control is not connected yet. `WaterfallController` currently exposes these methods for future integration:
+
+```csharp
+SetIntensity(float value)
+SetSpeedMultiplier(float value)
+SetDensityMultiplier(float value)
+TriggerPulse(float amount)
+SetGlitchAmount(float value)
+TriggerAccent(float amount)
+```
+
+Waterfall troubleshooting:
+
+- If nothing appears, confirm `BackgroundRoot` is active in Play Mode.
+- If `BackgroundRoot` is inactive, confirm the selected output mode is `WaterfallA` or `WaterfallB`.
+- If the image feels too slow, first increase `speedMultiplier` or `horizontalSpeedRange`.
+- If the horizontal mode looks too sparse, increase `densityMultiplier`, `horizontalUnitsPerRow`, or `horizontalUnitCount`.
+- If green / cyan becomes too dominant, lower `accentProbability`.
+- If horizontal movement looks too stepped, keep `horizontalUseSteppedMotion` disabled.
+
+## Avatar Visual / Glitch Status
+
+`ReadyPlayerAvatar.cs` includes runtime avatar material override, video glitch, and mesh glitch behavior.
+
+Author-confirmed status:
+
+- Avatar glitch Inspector settings have been personally tested by the author.
+- Avatar glitch visual development is temporarily complete.
+- Do not keep tuning these parameters unless explicitly requested.
+
+Important references to preserve:
+
+- `ReadyPlayerAvatar.overrideAvatarMaterials`
+- `ReadyPlayerAvatar.avatarMaterial`
+- `ReadyPlayerAvatar.enableAvatarGlitch`
+- `ReadyPlayerAvatar.glitchTexture`
+- `ReadyPlayerAvatar.suppressMeshGlitchInCollectiveSlotCameras`
+- `Unity/UPose/Assets/Materials/MAT_Avatar_Unlit.mat`
+- `Unity/UPose/Assets/Shaders/AvatarGlitchUnlit.shader`
+
 ### 4. Press Play in Unity
 
 After `aggregator.py` and at least one `run_mediapipe.py` process are running, press Play in Unity.
@@ -705,7 +819,7 @@ Missing documentation that should be added later:
 
 - Exact Unity scene setup and object hierarchy.
 - Exact Python environment setup.
-- Exact final projection mapping workflow. Development assumes Unity single-window output first, with MadMapper or Resolume mapping later.
+- Exact final projection mapping workflow. Current final runtime platform is Mac / Mac Studio; development assumes Unity single-window output first, with MadMapper or Resolume mapping later.
 - Optional screenshots or copied logs from successful Play Mode verification.
 - Port diagram for solo streams vs collective stream.
 - Explanation of how solo P1 to P4 slots relate to camera streams, if they are currently connected.

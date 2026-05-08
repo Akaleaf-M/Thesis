@@ -21,6 +21,11 @@
 | TODO-015 | `docs/RUNBOOK.md` | 添加 Unity Console screenshots 或 successful run 的 exact log examples。 | optional | hardware test | 成功跑通后截取 Unity Console 和 Python terminal 输出，补入 runbook 或附图目录。 | no |
 | TODO-016 | `docs/RUNBOOK.md` | 决定是否单独 normalize documentation encoding；不要仅为 comment cleanup 重写 source code。 | optional | artist decision | 先确认乱码是否影响阅读或展示；如需要，只处理 docs 文件并保留 source code 不变。 | no |
 
+| TODO-017 | `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md` | CLOSED: 作者确认最终项目将在 Mac / Mac Studio 端运行，暂不考虑 Windows build。Windows 端仅作为编辑和本地测试环境，不作为当前 build 目标。 | optional | artist decision / hardware test | 已记录在 architecture 和 runbook；无需继续跟踪 Windows build，除非作者重新提出。 | no |
+| TODO-018 | `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md` | CLOSED: avatar glitch Inspector settings 已由作者亲自检验，avatar glitch visual development 暂时结束。 | optional | artist decision / Unity Inspector | 保留当前 `ReadyPlayerAvatar` glitch 参数和 `MAT_Avatar_Unlit` / `AvatarGlitchUnlit.shader` 设置；除非作者明确要求，不继续调整。 | no |
+
+| TODO-019 | `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md` | Waterfall visual system now has `TestPatternHorizontal` and `DataWaterfallVertical` modes. Future VCV / rhythm control is not connected yet. | later | artist decision / code | After the visual presets stabilize, define VCV -> Unity control mapping for `SetIntensity`, `SetSpeedMultiplier`, `SetDensityMultiplier`, `TriggerPulse`, `SetGlitchAmount`, and `TriggerAccent`. | no |
+
 ## Notes
 
 - 标记为 `CLOSED` 的行保留原 TODO ID，方便追踪历史决策；这些行不再表示当前阻碍项。
