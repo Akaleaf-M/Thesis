@@ -633,17 +633,18 @@ Runtime settings can be saved from Play Mode:
 Current `DataWaterfallVertical` / `WaterfallA` direction:
 
 - `WaterfallA` has reached a usable visual preset state, but it is not final.
-- The visual language is a collective body signal field rather than a pure Matrix-style data rain.
+- The visual language is now a MIDI / CC control field rather than a pure Matrix-style data rain.
 - Many small white / cold gray rectangular segments are arranged into vertical streams / columns.
-- Some streams are wider and slower body channels, suggesting pelvis / torso / limb / visibility data.
+- Some streams are wider and slower control channels, suggesting MIDI bus lanes, CC routing, and CV conversion.
 - Streams can move in both directions: mostly top-to-bottom, with some bottom-to-top.
 - Some streams can briefly freeze / recompose during glitch or pulse events.
 - Small cyan / green accents may appear as live signal pulses, but green should stay rare.
 - Data labels are generated outside the camera view, pass through the frame with their original token unchanged, then disappear outside the frame.
-- `WaterfallA` labels can use slightly longer tokens than `WaterfallB`, such as `BODYMAP`, `STREAM04`, `FUSE_AVG`, `LATENCY`, `ROT_QTN`, and `VIS_LOW`.
+- `WaterfallA` labels now use MIDI-related tokens such as `MIDI_CC`, `IAC_BUS1`, `CH01`, `CC_20_ENR`, `CC_23_PLS`, `CC_24_ASY`, `MIDI_MAP`, `VCV_CORE`, `CV_OUT`, `GATE127`, `NOTE_ON`, `MIDI_THRU`, and `MAP_LEARN`.
+- CC-related labels append the MIDI value captured at label generation time, for example `CC_23_PLS:127`. The value stays fixed while the label remains visible.
 - Current dynamic candidates include stream direction ratio, density, speed, freeze probability, glitch amount, accent bursts, token visibility, and recompose/reset events.
 
-Direct VCV / rhythm control is still intended for `WaterfallA`, not `WaterfallB`. `WaterfallController` currently keeps public control methods as the Unity-side future integration surface:
+Direct bridge-to-Unity visual control is now the preferred `WaterfallA` path, rather than waiting for VCV to send data back to Unity. `WaterfallB` remains audio-reactive only. `WaterfallController` keeps public control methods as the Unity-side integration surface:
 
 ```csharp
 SetLanePadding(float value)
@@ -653,7 +654,16 @@ SetDensityMultiplier(float value)
 TriggerPulse(float amount)
 SetGlitchAmount(float value)
 TriggerAccent(float amount)
+RecomposeVerticalStreams(float amount)
 ```
+
+Current first Unity-side receiver:
+
+- `Unity/UPose/Assets/Scripts/WaterfallBodyControlReceiver.cs`
+- Listens for `wctrl` UDP packets on port `55000` by default.
+- Applies bridge body controls to `WaterfallA` speed, density, intensity, glitch, accent probability, upward stream probability, freeze probability, label alpha, pulse trigger, accent trigger, and vertical stream recomposition.
+- Current signal emphasis after VCV test: `pulse` / `CC 23` is a strong event channel and can boost one selected visual parameter; `asymmetry` / `CC 24` is subtler and drives WaterfallA stream recomposition.
+- `onlyAffectWaterfallA` is enabled by default so the receiver does not drive `WaterfallB`.
 
 ## Body / VCV Control Bridge Direction
 
@@ -672,17 +682,21 @@ Important architectural decision:
   - Unity solo streams: `52733-52736`
   - Aggregator inputs: `52833-52836`
   - Aggregator output to Unity: `53000`
-- Add body-to-VCV processing as a separate sidecar process, tentatively `body_control_bridge.py`.
+- Add body-to-VCV / body-to-WaterfallA processing as a separate sidecar process: `Unity/MotionCapture/mediapipe/body_control_bridge.py`.
+- Unity binds UDP `53000` exclusively, so the bridge should not bind `53000` while Unity is running.
+- `aggregator.py` preserves its original Unity output to `127.0.0.1:53000` and mirrors the same collective `mprot` stream to `127.0.0.1:53100` for sidecar use.
 
-Recommended first version:
+Current first version:
 
 ```text
 existing MediaPipe / UPose pipeline
 -> aggregator.py
--> existing collective mprot stream on 127.0.0.1:53000
--> body_control_bridge.py
+-> Unity collective mprot stream on 127.0.0.1:53000
+-> mirror collective mprot stream on 127.0.0.1:53100
+-> body_control_bridge.py listens on 53100
 -> smoothed 0-1 body control signals
--> OSC / UDP to VCV on a new 54000+ port
+-> OSC and/or MIDI CC to VCV
+-> optional UDP wctrl to Unity WaterfallA on 127.0.0.1:55000
 ```
 
 Suggested first control signals:
@@ -703,18 +717,19 @@ Design constraints:
 - Do not send raw quaternions directly to many VCV knobs.
 - Prefer a small set of smoothed, stable `0-1` signals plus occasional triggers.
 - Target `20-30 Hz` output rather than full-rate noisy control.
-- Use a VCV port range separate from MediaPipe / UPose, e.g. `54000+`.
+- Use VCV and WaterfallA port ranges separate from MediaPipe / UPose, e.g. `54000+` for VCV and `55000+` for Unity visual controls.
+- Current bridge defaults: `--listen-port 53100`, `--vcv-port 54000`, `--unity-port 55000`, `--target-hz 25`.
 - Body signals should modulate the self-generating patch, not take full absolute control of every parameter.
-- Later, `WaterfallA` can either receive direct VCV control, or receive the same high-level body controls. The cleaner conceptual route is:
+- Current conceptual route:
 
 ```text
 audience body -> body_control_bridge.py -> VCV
-VCV rhythm/state -> Unity WaterfallA
+audience body -> body_control_bridge.py -> Unity WaterfallA
 ```
 
 ## Avatar Visual Style
 
-`ReadyPlayerAvatar.cs` now includes an avatar material override and glitch visual system.
+`ReadyPlayerAvatar.cs` now includes an avatar material override, glitch visual system, and narrow lost-tracking fallback.
 
 Current components:
 
@@ -723,10 +738,24 @@ Current components:
 - `ReadyPlayerAvatar.overrideAvatarMaterials`
 - `ReadyPlayerAvatar.avatarMaterial`
 - `ReadyPlayerAvatar.enableAvatarGlitch`
+- `ReadyPlayerAvatar.enableLostTrackingFallback`
 - video glitch parameters
 - mesh glitch parameters
+- lost-tracking fallback parameters
 
 Author confirmation: avatar glitch Inspector settings have been personally tested by the author and this visual development thread is temporarily complete. Future AI changes should not continue tuning avatar glitch unless explicitly requested.
+
+The lost-tracking fallback is separate from the glitch visual system. Normal tracked motion remains direct pass-through from `MotionTrackingPose.GetRotation(...)` to avatar bones, preserving motion accuracy. The fallback only activates when the incoming `mprot` rotation set looks like tracking loss: all driven rotations are effectively identity, or a quaternion is invalid.
+
+Current first-pass fallback behavior:
+
+- Captures the loaded avatar's rest pose after bones and helper colliders are initialized.
+- Captures the last valid tracked avatar pose during normal pass-through motion.
+- Detects likely tracking loss when pelvis, torso, shoulders, elbows, hips, and knees are all close to identity rotation.
+- Blends to the last valid tracked pose by default, avoiding the raw model rest / T-pose orientation that may be supine.
+- If `fallbackToLastValidPose` is enabled and no valid tracked pose has been seen yet, it leaves the current avatar pose unchanged instead of applying the raw rest pose.
+- Uses the captured rest pose only when `fallbackToLastValidPose` is disabled.
+- Immediately returns to direct tracking when non-identity motion data comes back.
 
 TODO: document the actual projection output path after checking the Unity scene and final hardware workflow:
 

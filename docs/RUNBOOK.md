@@ -58,11 +58,15 @@ Current known ports:
 | Camera 3 to aggregator collective input | `52835` |
 | Camera 4 to aggregator collective input | `52836` |
 | Aggregator output to Unity collective receiver | `53000` |
+| Aggregator mirror output to body bridge | `53100` |
+| Body bridge OSC output to VCV | `54000` |
+| Body bridge UDP output to Unity WaterfallA | `55000` |
 
 Important:
 
 - Unity Inspector-confirmed design: `aggregator.py` receives Python camera streams on `52833` to `52836`.
 - `aggregator.py` sends to `127.0.0.1:53000`.
+- `aggregator.py` also mirrors the same collective `mprot` packets to `127.0.0.1:53100` for `body_control_bridge.py`.
 - Unity should listen on `53000` for the collective body.
 - Unity should listen on `52733` to `52736` for 4 solo streams.
 - `run_mediapipe.py` sends each camera packet both to `unity_port` and `agg_port`.
@@ -165,6 +169,7 @@ Expected terminal output includes:
 [agg] listening on UDP 52835
 [agg] listening on UDP 52836
 [agg] sending to 127.0.0.1:53000
+[agg] mirroring to 127.0.0.1:53100
 ```
 
 If any port bind fails, another process may already be using that UDP port.
@@ -275,6 +280,7 @@ Aggregator output:
 | Source | Destination |
 | --- | --- |
 | `aggregator.py` fused collective body | Unity port `53000` |
+| `aggregator.py` fused collective body mirror | body bridge input port `53100` |
 
 Code check result:
 
@@ -282,6 +288,7 @@ Code check result:
 - `run_mediapipe.py` sends each `mprot` packet to both `unity_port` and `agg_port`.
 - `aggregator.py` listens on `52833-52836`.
 - `aggregator.py` outputs to `127.0.0.1:53000`.
+- `aggregator.py` mirrors the same output to `127.0.0.1:53100` for `body_control_bridge.py`.
 - This matches the confirmed DanceScene port design.
 
 ## macOS Startup
@@ -292,18 +299,27 @@ macOS startup script:
 Unity/MotionCapture/mediapipe/start_pose_system_mac.sh
 ```
 
+Optional Finder double-click wrapper:
+
+```text
+Unity/MotionCapture/mediapipe/start_pose_system_mac.command
+```
+
+The `.command` file only delegates to `start_pose_system_mac.sh`; keep all startup logic in the `.sh` file.
+
 Before first use, give it execute permission:
 
 ```bash
 cd Unity/MotionCapture/mediapipe
 chmod +x start_pose_system_mac.sh
+chmod +x start_pose_system_mac.command
 ```
 
 Mac Studio M1 Max hardware test status:
 
 - Environment setup verified.
 - Python / MediaPipe / UPose / UDP flow verified.
-- `start_pose_system_mac.sh` is the current Mac Studio launcher baseline.
+- `start_pose_system_mac.sh` is the current Mac Studio launcher baseline, including the body bridge for VCV MIDI CC and Unity WaterfallA UDP control.
 - Camera index mapping verified on the current Mac Studio setup:
   - `CAM_P1=0`
   - `CAM_P2=1`
@@ -326,7 +342,31 @@ CAM_P3=2
 CAM_P4=3
 ```
 
-Edit those values in `start_pose_system_mac.sh` if `list_cameras_mac.py` reports a different mapping. If the USB hub, camera ports, or physical camera order changes, or if macOS changes device ordering after reboot, rerun `python list_cameras_mac.py`.
+The launcher also defines the current body bridge defaults:
+
+```bash
+START_BODY_BRIDGE=1
+BODY_BRIDGE_OUTPUT_MODE=midi
+BODY_BRIDGE_MIDI_PORT_NAME=IAC
+BODY_BRIDGE_MIDI_CHANNEL=1
+BODY_BRIDGE_MIDI_SEND_RATE=20
+BODY_BRIDGE_MIDI_CHANGE_THRESHOLD=0.02
+BODY_BRIDGE_UNITY_OUTPUT=1
+USE_TERMINAL_TABS=0
+```
+
+Edit the camera values in `start_pose_system_mac.sh` if `list_cameras_mac.py` reports a different mapping. If the USB hub, camera ports, or physical camera order changes, or if macOS changes device ordering after reboot, rerun `python list_cameras_mac.py`.
+
+Set `START_BODY_BRIDGE=0` only if you want to run the pose system without VCV / WaterfallA control. Set `BODY_BRIDGE_MIDI_PORT_NAME=IAC` unless the bridge cannot find the IAC bus; the `IAC` alias is safer than the full localized macOS port name.
+
+`USE_TERMINAL_TABS=0` is the recommended installation default. It launches background processes and writes logs instead of relying on Terminal.app tab automation. Set it to `1` only if you specifically want one visible Terminal tab per process and macOS accessibility permissions are already working.
+
+If `START_BODY_BRIDGE=1` and `BODY_BRIDGE_OUTPUT_MODE=midi` or `both`, the launcher checks that the active conda environment can import `mido` and `rtmidi` before starting any long-running processes. If the check fails, install:
+
+```bash
+conda activate mediapipe
+python -m pip install mido python-rtmidi
+```
 
 Run the launcher:
 
@@ -335,9 +375,10 @@ cd Unity/MotionCapture/mediapipe
 ./start_pose_system_mac.sh
 ```
 
-The macOS launcher first tries to use Terminal.app tabs through `osascript` / AppleScript. If tab launch succeeds, one Terminal window opens with tabs for:
+By default, the macOS launcher uses background/logs mode. If `USE_TERMINAL_TABS=1`, it first tries to use Terminal.app tabs through `osascript` / AppleScript. If tab launch succeeds, one Terminal window opens with tabs for:
 
 - `aggregator.py`
+- `body_control_bridge.py --listen-port 53100 --output-mode midi --midi-port-name IAC --unity-output`
 - `run_mediapipe.py "$CAM_P1" 52733 52833`
 - `run_mediapipe.py "$CAM_P2" 52734 52834`
 - `run_mediapipe.py "$CAM_P3" 52735 52835`
@@ -366,6 +407,13 @@ Expected port mapping:
 | P3 | `CAM_P3` | `52735` | `52835` |
 | P4 | `CAM_P4` | `52736` | `52836` |
 
+Expected sidecar mapping:
+
+| Process | Input | Output |
+| --- | --- | --- |
+| `aggregator.py` | `52833-52836` | Unity collective `53000`, bridge mirror `53100` |
+| `body_control_bridge.py` | Aggregator mirror `53100` | MIDI CC to IAC / VCV, Unity WaterfallA UDP `55000` |
+
 The script sets:
 
 ```bash
@@ -390,6 +438,7 @@ while read -r pid; do kill "$pid" 2>/dev/null; done < logs/pose_system_pids.txt
 ```bash
 pkill -f run_mediapipe.py
 pkill -f aggregator.py
+pkill -f body_control_bridge.py
 ```
 
 If Terminal.app asks for permission to control the computer, allow Terminal / osascript accessibility automation, then rerun the launcher. If permission is not granted, the script should fall back to background/logs mode.
@@ -397,6 +446,8 @@ If Terminal.app asks for permission to control the computer, allow Terminal / os
 ## Mac Build / Output Modes
 
 Author-confirmed project direction: the final installation/demo runtime is Mac / Mac Studio. Windows remains available for editing and local testing, but Windows build is not a current target.
+
+Recommended pre-exhibition build timing: pull the latest repository state on the Mac Studio first, verify the launcher / IAC / BlackHole / VCV / Unity UDP setup there, then build the Mac app from that machine. A development-machine build can catch compile errors, but it does not replace the final Mac Studio hardware validation.
 
 `DanceScene.unity` includes `OutputModeManager.cs`. For built Mac apps, output mode can be selected with command line arguments:
 
@@ -443,12 +494,13 @@ Current `WaterfallA` visual direction:
 
 - `WaterfallA` is visually usable as the current preset, but not final.
 - It uses vertical streams / columns of white and cold gray rectangular segments.
-- Some columns act as wider, slower body channels.
+- Some columns act as wider, slower MIDI / CC control channels.
 - Streams can move top-to-bottom and bottom-to-top.
 - Freeze / recompose behavior is part of the visual language and is a likely VCV control target.
 - Data labels spawn outside the camera view, keep their original token while visible, then disappear outside the frame.
 - `WaterfallA` labels can be longer than `WaterfallB` labels.
-- Useful current label tokens include `PEL`, `TORS`, `BODYMAP`, `P01`, `COL`, `FUSE_AVG`, `LATENCY`, `ROT_QTN`, and `VIS_LOW`.
+- Current label tokens are MIDI-related, including `MIDI_CC`, `IAC_BUS1`, `CH01`, `CC_20_ENR`, `CC_23_PLS`, `CC_24_ASY`, `MIDI_MAP`, `VCV_CORE`, `CV_OUT`, `GATE127`, `NOTE_ON`, `MIDI_THRU`, and `MAP_LEARN`.
+- CC-related labels append the MIDI value captured at label generation time, for example `CC_23_PLS:127`. The value stays fixed while the label remains visible.
 
 Current `WaterfallB` visual direction:
 
@@ -535,6 +587,7 @@ SetDensityMultiplier(float value)
 TriggerPulse(float amount)
 SetGlitchAmount(float value)
 TriggerAccent(float amount)
+RecomposeVerticalStreams(float amount)
 ```
 
 ### VCV Communication Planning
@@ -546,14 +599,222 @@ Do not change the current MediaPipe -> Unity path when adding VCV communication:
 - Keep `aggregator.py` outputting collective body to Unity port `53000`.
 - Do not use `52733-52736`, `52833-52836`, or `53000` for VCV receive ports.
 
-Recommended first development step for body-to-VCV control:
+Current body bridge:
 
 ```text
 body_control_bridge.py
--> listens to existing collective mprot stream on 127.0.0.1:53000
+-> listens to aggregator mirror mprot stream on 127.0.0.1:53100
 -> computes a small set of smoothed body control signals
--> sends OSC / UDP to VCV on a new 54000+ port
+-> sends OSC and/or MIDI CC to VCV
+-> optionally sends wctrl UDP to Unity WaterfallA on 127.0.0.1:55000
 ```
+
+Run it from:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+python body_control_bridge.py
+```
+
+Useful options:
+
+```bash
+python body_control_bridge.py --listen-port 53100 --vcv-host 127.0.0.1 --vcv-port 54000 --target-hz 25
+```
+
+Important: Unity binds UDP `53000` exclusively, so do not run the bridge on `53000` while Unity is also listening there. The aggregator mirror port `53100` exists to keep the Unity receiver untouched.
+
+### WaterfallA Bridge Control
+
+Python -> VCV communication is now usable as version 1.0. The current visual-control direction is to skip VCV -> Unity and let `body_control_bridge.py` send the same high-level body controls directly to Unity for `WaterfallA`.
+
+Bridge command:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+python body_control_bridge.py --output-mode midi --midi-port-name "IAC" --unity-output
+```
+
+For Unity visual control without MIDI dependency:
+
+```bash
+python body_control_bridge.py --output-mode osc --unity-output
+```
+
+Unity receives `wctrl` UDP packets on port `55000` by default. The packet is line-based:
+
+```text
+wctrl
+energy|0.0-1.0
+stillness|0.0-1.0
+presence|0.0-1.0
+pulse|0.0-1.0
+asymmetry|0.0-1.0
+height|0.0-1.0
+upper|0.0-1.0
+lower|0.0-1.0
+```
+
+Unity setup:
+
+1. In `DanceScene`, preview or run output mode `WaterfallA`.
+2. Add `WaterfallBodyControlReceiver` to the same object as `WaterfallController`, or another active object under `BackgroundRoot`.
+3. Assign the `WaterfallController` reference if it is not found automatically.
+4. Keep `Port = 55000`.
+5. Keep `Only Affect Waterfall A` enabled.
+6. Enter Play Mode and confirm the Console prints `[WaterfallBodyControlReceiver] Listening on UDP 0.0.0.0:55000`.
+
+Default WaterfallA mapping:
+
+| Body signal | WaterfallA target |
+| --- | --- |
+| `energy` | `speedMultiplier`, partial density / intensity influence |
+| `presence` | `globalIntensity`, density, label alpha |
+| `stillness` | `verticalFreezeProbability` |
+| `pulse` / `CC 23` | `TriggerPulse` plus a selectable temporary boost target |
+| `asymmetry` / `CC 24` | `upwardStreamProbability`, `glitchProbability`, accent source, and vertical stream recomposition |
+| `upper` | accent probability bias |
+| `height` | currently received for future mapping; it remains a rotation-based proxy |
+
+Useful Unity-side tuning fields on `WaterfallBodyControlReceiver`:
+
+| Field | Use |
+| --- | --- |
+| `responseSpeed` | Smoothing speed for visual response |
+| `speedRange` | Energy-to-motion-speed range |
+| `densityRange` | Presence/energy-to-stream-density range |
+| `intensityRange` | Presence-to-brightness range |
+| `glitchRange` | Asymmetry/pulse-to-glitch range |
+| `accentRange` | Asymmetry/upper-body-to-accent range |
+| `pulseResponseTarget` | Which visible parameter `pulse` / `CC 23` temporarily boosts: `PulseOnly`, `Speed`, `Glitch`, `Accent`, `Density`, or `Freeze` |
+| `pulseBoostDuration` | How long the `CC 23` boost remains visible |
+| `upwardStreamProbabilityRange` | Asymmetry-to-bidirectional-stream ratio |
+| `freezeProbabilityRange` | Stillness-to-freeze/recompose tendency |
+| `labelAlphaRange` | Presence-to-data-label visibility |
+| `asymmetryRecomposeThreshold` | Minimum `CC 24` / asymmetry value needed before recomposition can fire |
+| `asymmetryRecomposeGain` | How much of the waterfall gets repositioned when recomposition fires |
+| `asymmetryRecomposeCooldown` | Minimum seconds between recomposition events |
+| `asymmetryDeltaTrigger` | How much `CC 24` / asymmetry must change to trigger another recomposition |
+
+Current testing note:
+
+- `CC 23` / `pulse` is the strongest event channel and often jumps between `0V` and `10V` in VCV. Use it for one clearly visible parameter at a time through `pulseResponseTarget`.
+- `CC 24` / `asymmetry` is subtler and tends to float near the low-voltage range in VCV. It is now used as a recomposition signal that repositions a portion of WaterfallA vertical streams.
+
+WaterfallA troubleshooting:
+
+- If nothing reacts, confirm the bridge was started with `--unity-output`.
+- If Unity reports a bind error on `55000`, another process or duplicate receiver is already using that port.
+- If `WaterfallB` reacts unexpectedly, keep `Only Affect Waterfall A` enabled.
+- If the visual is too nervous, lower `responseSpeed`, lower bridge `--target-hz`, or increase bridge `--smoothing`.
+- If the image is too dense or bright, reduce `densityRange.y` or `intensityRange.y`.
+
+### VCV MIDI CC Connection
+
+`body_control_bridge.py` can send MIDI CC directly to VCV Rack as an alternative to cvOSCcv / OSC. This keeps the body-control path in Python and VCV Rack, without TouchDesigner.
+
+Install the optional MIDI dependencies in the same Python / conda environment used for the bridge:
+
+```bash
+python -m pip install mido python-rtmidi
+```
+
+macOS IAC Driver setup:
+
+1. Open `Audio MIDI Setup`.
+2. Choose `Window > Show MIDI Studio`.
+3. Double-click `IAC Driver`.
+4. Enable `Device is online`.
+5. Make sure there is a bus named `IAC Driver Bus 1`.
+
+Start the bridge in MIDI-only mode:
+
+```bash
+cd Unity/MotionCapture/mediapipe
+python body_control_bridge.py --output-mode midi --midi-port-name "IAC Driver Bus 1"
+```
+
+On localized macOS systems, `python-rtmidi` may report the IAC bus with a translated or mojibake name, for example a garbled version of `IAC Driver Bus 1`. The bridge accepts an IAC alias, so this is usually safer:
+
+```bash
+python body_control_bridge.py --output-mode midi --midi-port-name "IAC"
+```
+
+To inspect the exact MIDI output names seen by Python:
+
+```bash
+python body_control_bridge.py --list-midi-ports
+```
+
+Start the bridge in OSC + MIDI mode:
+
+```bash
+python body_control_bridge.py --output-mode both --midi-port-name "IAC Driver Bus 1" --vcv-port 54000
+```
+
+Useful MIDI tuning options:
+
+```bash
+python body_control_bridge.py --output-mode midi --midi-port-name "IAC Driver Bus 1" --midi-channel 1 --midi-send-rate 20 --midi-change-threshold 0.02
+```
+
+VCV Rack setup with Core MIDI-CC:
+
+1. Add VCV Rack Core `MIDI-CC`.
+2. Set the MIDI device to `IAC Driver Bus 1`.
+3. Set the MIDI channel to match `--midi-channel`; default is channel `1`.
+4. Use the CC outputs from `MIDI-CC` to modulate selected parameters through attenuverters / VCAs / CV inputs.
+
+VCV Rack setup with MIDI-Map:
+
+1. Add Core `MIDI-Map`.
+2. Set the device to `IAC Driver Bus 1`.
+3. Map CC numbers to specific VCV parameters.
+4. Keep modulation depths small at first, because body signals can become musically dense quickly.
+
+Default MIDI CC mapping:
+
+| Body signal | MIDI CC | Value range |
+| --- | --- | --- |
+| `energy` | `CC 20` | `0-127` |
+| `stillness` | `CC 21` | `0-127` |
+| `presence` | `CC 22` | `0-127` |
+| `pulse` | `CC 23` | `0` or `127` |
+| `asymmetry` | `CC 24` | `0-127` |
+| `height` | `CC 25` | `0-127` |
+
+The CC numbers can be changed:
+
+```bash
+python body_control_bridge.py --output-mode midi --midi-port-name "IAC Driver Bus 1" --cc-energy 30 --cc-stillness 31 --cc-presence 32
+```
+
+Recommended first VCV mappings:
+
+| Signal | Suggested use |
+| --- | --- |
+| `energy` / `CC 20` | Filter cutoff, percussion density, modulation amount |
+| `stillness` / `CC 21` | Reverb size, freeze amount, drone layer level |
+| `presence` / `CC 22` | Master body-influence depth, wet/dry amount |
+| `pulse` / `CC 23` | Sparse glitch, ratchet, sample-and-hold trigger-like modulation |
+| `asymmetry` / `CC 24` | Stereo spread, left/right modulation imbalance |
+| `height` / `CC 25` | Register / timbre proxy; use gently because current `mprot` has rotations, not real joint positions |
+
+MIDI CC mode vs cvOSCcv / OSC:
+
+- MIDI CC mode uses VCV Rack Core MIDI modules and avoids relying on cvOSCcv.
+- OSC mode is still available through `--output-mode osc` and defaults to UDP/OSC port `54000`.
+- `--output-mode both` can be useful while comparing OSC and MIDI behavior.
+- MIDI CC values are lower-resolution (`0-127`) than OSC floats, but often easier and more stable to patch inside VCV Rack Core.
+
+MIDI troubleshooting:
+
+- If the bridge prints `MIDI output requires mido and python-rtmidi`, install the optional dependencies with `python -m pip install mido python-rtmidi`.
+- If the bridge cannot find `"IAC Driver Bus 1"`, check that IAC Driver is online in Audio MIDI Setup. Then run `python body_control_bridge.py --list-midi-ports`.
+- If the available port looks garbled, use `--midi-port-name "IAC"` or copy the available port name exactly.
+- If VCV receives nothing, confirm VCV's MIDI device is `IAC Driver Bus 1`, the channel matches `--midi-channel`, and the bridge terminal says `sending MIDI CC`.
+- If values feel too jittery, increase `--smoothing`, lower `--midi-send-rate`, or raise `--midi-change-threshold`.
+- If `pulse` fires too often, increase `--pulse-threshold` and `--pulse-cooldown`.
 
 Initial candidate signals:
 
@@ -574,7 +835,7 @@ VCV patch design note:
 - Body signals should gently modulate selected knobs, not directly control many raw parameters.
 - Avoid sending raw quaternion values to VCV as direct musical controls.
 - First-pass body controls should be smoothed and rate-limited, around `20-30 Hz`.
-- A good conceptual route is: audience body influences VCV, then VCV rhythm/state influences `WaterfallA`.
+- Current route: audience body influences VCV through MIDI CC, and the same body controls influence `WaterfallA` directly through bridge-to-Unity UDP.
 
 Waterfall troubleshooting:
 
@@ -886,6 +1147,24 @@ Check:
 - The fragment camera has a valid target and is enabled while the slot is active.
 
 If these references look correct but fragments are still blank, enter Play Mode and check Unity Console for runtime errors.
+
+### Avatar limbs twist or snap
+
+`ReadyPlayerAvatar.cs` keeps normal tracked motion as direct pass-through. It only uses a lost-tracking fallback when the incoming `mprot` rotations look like tracking loss, usually the all-identity pose that makes arms / legs point upward. This does not change Python capture, `aggregator.py`, or the UDP protocol.
+
+Check these Inspector fields on each active avatar:
+
+| Field | Suggested starting value | Notes |
+| --- | --- | --- |
+| `Enable Lost Tracking Fallback` | enabled | Master switch for the fallback |
+| `Fallback To Last Valid Pose` | enabled | Uses the last valid tracked pose instead of the raw avatar rest pose |
+| `Lost Pose Identity Angle` | `2` | How close all incoming rotations must be to identity before fallback activates |
+| `Lost Pose Blend Speed` | `12` | How quickly the avatar blends to fallback pose |
+| `Log Lost Tracking Fallback` | disabled | Enable temporarily to confirm when fallback activates/restores |
+
+With `Fallback To Last Valid Pose` enabled, the avatar will not apply the raw rest / T-pose before the first valid body frame. This avoids the supine rest orientation seen on the current avatar.
+
+If fallback does not activate when the person leaves frame, raise `Lost Pose Identity Angle` slightly, for example to `4`. If fallback activates during valid subtle motion, lower it toward `1`.
 
 ### Fragment cameras cannot find bones
 

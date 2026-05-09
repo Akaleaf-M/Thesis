@@ -140,14 +140,20 @@ public class WaterfallController : MonoBehaviour
     public float verticalLabelXOffset = 0.1f;
     public float verticalLabelFontSize = 1f;
     public float verticalLabelOffscreenMargin = 1.4f;
-    public int verticalLabelMaxTokenLength = 9;
+    public int verticalLabelMaxTokenLength = 13;
     [Range(0f, 1f)] public float verticalLabelAlpha = 0.62f;
     [Range(0f, 1f)] public float verticalLabelAccentChance = 0.12f;
     public Color verticalLabelColor = Color.white;
     public Color verticalLabelAccentColor = new Color(0f, 0.82f, 1f, 1f);
-    public string[] verticalBodyTokens = new string[] { "PEL", "TORS", "L_SH", "R_EL", "HIP", "KNEE", "ROT_QTN", "VIS_LOW", "BODYMAP" };
-    public string[] verticalStreamTokens = new string[] { "P01", "P02", "P03", "P04", "COL", "AVG", "FUSE", "SYNC", "STREAM04", "FUSE_AVG" };
-    public string[] verticalSignalTokens = new string[] { "LOSS", "QTN", "LAT", "BUF", "DROP", "SCAN", "MERG", "RSET", "LATENCY", "RESYNC" };
+    public string[] verticalBodyTokens = new string[] { "MIDI_CC", "IAC_BUS1", "CH01", "CC_20_ENR", "CC_21_STL", "CC_22_PRS", "CC_23_PLS", "CC_24_ASY", "CC_25_HGT" };
+    public string[] verticalStreamTokens = new string[] { "MIDI_MAP", "VCV_CORE", "CV_OUT", "GATE127", "CC_IN", "CC_ROUTE", "CTRL_20", "CTRL_23", "CTRL_24", "BUS_SYNC" };
+    public string[] verticalSignalTokens = new string[] { "NOTE_ON", "NOTE_OFF", "CC_VAL", "MSB", "LSB", "VEL_127", "CLK24", "IAC_RX", "MIDI_THRU", "MAP_LEARN" };
+    [Range(0f, 1f)] public float midiCc20Energy;
+    [Range(0f, 1f)] public float midiCc21Stillness = 1f;
+    [Range(0f, 1f)] public float midiCc22Presence;
+    [Range(0f, 1f)] public float midiCc23Pulse;
+    [Range(0f, 1f)] public float midiCc24Asymmetry;
+    [Range(0f, 1f)] public float midiCc25Height = 1f;
 
     [Header("Runtime Objects")]
     public string meshRootName = "WaterfallRuntimeMeshes";
@@ -356,8 +362,17 @@ public class WaterfallController : MonoBehaviour
         verticalLabelXOffset = 0.1f;
         verticalLabelFontSize = 1f;
         verticalLabelOffscreenMargin = 1.4f;
+        verticalLabelMaxTokenLength = 13;
         verticalLabelAlpha = 0.62f;
         verticalLabelAccentChance = 0.12f;
+        ApplyWaterfallAMidiTokens();
+    }
+
+    void ApplyWaterfallAMidiTokens()
+    {
+        verticalBodyTokens = new string[] { "MIDI_CC", "IAC_BUS1", "CH01", "CC_20_ENR", "CC_21_STL", "CC_22_PRS", "CC_23_PLS", "CC_24_ASY", "CC_25_HGT" };
+        verticalStreamTokens = new string[] { "MIDI_MAP", "VCV_CORE", "CV_OUT", "GATE127", "CC_IN", "CC_ROUTE", "CTRL_20", "CTRL_23", "CTRL_24", "BUS_SYNC" };
+        verticalSignalTokens = new string[] { "NOTE_ON", "NOTE_OFF", "CC_VAL", "MSB", "LSB", "VEL_127", "CLK24", "IAC_RX", "MIDI_THRU", "MAP_LEARN" };
     }
 
     void ApplyWaterfallBPreset()
@@ -458,6 +473,36 @@ public class WaterfallController : MonoBehaviour
     public void TriggerAccent(float amount)
     {
         accentTrigger = Mathf.Clamp01(Mathf.Max(accentTrigger, amount));
+    }
+
+    public void RecomposeVerticalStreams(float amount)
+    {
+        if (verticalStreams == null)
+            return;
+
+        float chance = Mathf.Clamp01(amount);
+        if (chance <= 0f)
+            return;
+
+        for (int i = 0; i < verticalStreams.Length; i++)
+        {
+            VerticalStream stream = verticalStreams[i];
+            if (stream == null)
+                continue;
+
+            if (Random.value <= chance)
+                ResetVerticalStream(stream, true);
+        }
+    }
+
+    public void SetMidiControlValues(float energy, float stillness, float presence, float pulseValue, float asymmetry, float height)
+    {
+        midiCc20Energy = Mathf.Clamp01(energy);
+        midiCc21Stillness = Mathf.Clamp01(stillness);
+        midiCc22Presence = Mathf.Clamp01(presence);
+        midiCc23Pulse = Mathf.Clamp01(pulseValue);
+        midiCc24Asymmetry = Mathf.Clamp01(asymmetry);
+        midiCc25Height = Mathf.Clamp01(height);
     }
 
     void OnValidate()
@@ -1562,7 +1607,7 @@ public class WaterfallController : MonoBehaviour
 
         if (string.IsNullOrEmpty(label.text.text))
         {
-            label.text.text = PickToken(tokens, "COL");
+            label.text.text = PickVerticalMidiToken(tokens);
             label.color = Random.value < verticalLabelAccentChance ? verticalLabelAccentColor : verticalLabelColor;
         }
 
@@ -1572,6 +1617,57 @@ public class WaterfallController : MonoBehaviour
         Color color = label.color;
         color.a = Mathf.Clamp01(verticalLabelAlpha * Mathf.Max(0f, globalIntensity));
         label.text.color = color;
+    }
+
+    string PickVerticalMidiToken(string[] tokens)
+    {
+        string token = PickToken(tokens, "CC_VAL");
+        float value = ResolveMidiValueForToken(token, out bool hasValue);
+        if (!hasValue)
+            return token;
+
+        return $"{token}:{Mathf.RoundToInt(Mathf.Clamp01(value) * 127f):000}";
+    }
+
+    float ResolveMidiValueForToken(string token, out bool hasValue)
+    {
+        hasValue = true;
+        string normalized = string.IsNullOrEmpty(token) ? "" : token.ToUpperInvariant();
+
+        if (normalized.Contains("20"))
+            return midiCc20Energy;
+        if (normalized.Contains("21"))
+            return midiCc21Stillness;
+        if (normalized.Contains("22"))
+            return midiCc22Presence;
+        if (normalized.Contains("23") || normalized.Contains("PLS") || normalized.Contains("GATE") || normalized.Contains("NOTE"))
+            return midiCc23Pulse;
+        if (normalized.Contains("24") || normalized.Contains("ASY"))
+            return midiCc24Asymmetry;
+        if (normalized.Contains("25") || normalized.Contains("HGT"))
+            return midiCc25Height;
+
+        if (normalized.Contains("CC_VAL"))
+        {
+            switch (Random.Range(0, 6))
+            {
+                case 0:
+                    return midiCc20Energy;
+                case 1:
+                    return midiCc21Stillness;
+                case 2:
+                    return midiCc22Presence;
+                case 3:
+                    return midiCc23Pulse;
+                case 4:
+                    return midiCc24Asymmetry;
+                default:
+                    return midiCc25Height;
+            }
+        }
+
+        hasValue = false;
+        return 0f;
     }
 
     void ResetVerticalStream(VerticalStream stream, bool randomizeY)

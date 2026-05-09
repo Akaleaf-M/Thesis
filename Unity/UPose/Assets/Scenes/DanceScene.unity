@@ -286,6 +286,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 1813898620}
   Delay: 0
+  enableLostTrackingFallback: 1
+  fallbackToLastValidPose: 1
+  lostPoseIdentityAngle: 2
+  lostPoseBlendSpeed: 12
+  logLostTrackingFallback: 0
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
@@ -700,6 +705,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 586106501}
   Delay: 0
+  enableLostTrackingFallback: 1
+  fallbackToLastValidPose: 1
+  lostPoseIdentityAngle: 2
+  lostPoseBlendSpeed: 12
+  logLostTrackingFallback: 0
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
@@ -1362,6 +1372,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 555738065}
   Delay: 0
+  enableLostTrackingFallback: 1
+  fallbackToLastValidPose: 1
+  lostPoseIdentityAngle: 2
+  lostPoseBlendSpeed: 12
+  logLostTrackingFallback: 0
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
@@ -2107,6 +2122,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 885882843}
   Delay: 0
+  enableLostTrackingFallback: 1
+  fallbackToLastValidPose: 1
+  lostPoseIdentityAngle: 2
+  lostPoseBlendSpeed: 12
+  logLostTrackingFallback: 0
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
@@ -2174,6 +2194,7 @@ GameObject:
   - component: {fileID: 981538047}
   - component: {fileID: 981538049}
   - component: {fileID: 981538050}
+  - component: {fileID: 981538051}
   m_Layer: 0
   m_Name: BackgroundRoot
   m_TagString: Untagged
@@ -2246,11 +2267,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49bc1bf06082cbc40aa96aa6fa45562c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaterfallController
-  preset: 1
+  preset: 0
   useOutputModeManagerPreset: 1
   applyPresetOnStart: 1
   preserveInspectorLanePaddingOnPreset: 1
-  visualMode: 0
+  visualMode: 1
   worldWidth: 12.8
   worldHeight: 8
   zOffset: 0
@@ -2329,7 +2350,7 @@ MonoBehaviour:
   - TR:12
   - BUS4
   - 1001
-  verticalStreamCount: 140
+  verticalStreamCount: 512
   verticalColumnCount: 96
   segmentsPerStreamMin: 3
   segmentsPerStreamMax: 10
@@ -2341,6 +2362,7 @@ MonoBehaviour:
   segmentGapMax: 0.28
   fallSpeedMin: 0.7
   fallSpeedMax: 3.2
+  upwardStreamProbability: 0.32
   alphaMin: 0.25
   alphaMax: 0.82
   brightnessMin: 0.55
@@ -2350,9 +2372,59 @@ MonoBehaviour:
   verticalShowColumnGuides: 1
   verticalGuideEveryColumns: 12
   verticalFrameInset: 0.08
+  verticalBodyChannelEveryColumns: 18
+  verticalBodyChannelWidthMultiplier: 2.4
+  verticalBodyChannelProbability: 0.42
+  verticalFreezeProbability: 0.18
+  verticalFreezeDurationRange: {x: 0.08, y: 0.28}
+  verticalShowDataLabels: 1
+  verticalLabelPoolSize: 54
+  verticalLabelStreamStep: 8
+  verticalLabelXOffset: 0.1
+  verticalLabelFontSize: 0.15
+  verticalLabelOffscreenMargin: 1.4
+  verticalLabelMaxTokenLength: 9
+  verticalLabelAlpha: 0.62
+  verticalLabelAccentChance: 0.12
+  verticalLabelColor: {r: 1, g: 1, b: 1, a: 1}
+  verticalLabelAccentColor: {r: 0, g: 0.82, b: 1, a: 1}
+  verticalBodyTokens:
+  - PEL
+  - TORS
+  - L_SH
+  - R_EL
+  - HIP
+  - KNEE
+  - ROT
+  - VIS
+  verticalStreamTokens:
+  - P01
+  - P02
+  - P03
+  - P04
+  - COL
+  - AVG
+  - FUSE
+  - SYNC
+  verticalSignalTokens:
+  - LOSS
+  - QTN
+  - LAT
+  - BUF
+  - DROP
+  - SCAN
+  - MERG
+  - RSET
+  midiCc20Energy: 0
+  midiCc21Stillness: 1
+  midiCc22Presence: 0
+  midiCc23Pulse: 0
+  midiCc24Asymmetry: 0
+  midiCc25Height: 1
   meshRootName: WaterfallRuntimeMeshes
   liveApplyInspectorChanges: 1
   loadSavedSettingsOnAwake: 1
+  loadSavedSettingsOnlyForMatchingPreset: 1
   savedSettingsFileName: WaterfallB_ControllerSettings.json
 --- !u!114 &981538050
 MonoBehaviour:
@@ -2401,6 +2473,47 @@ MonoBehaviour:
   transientAmount: 0
   loadSavedSettingsOnAwake: 1
   savedSettingsFileName: WaterfallB_AudioReactiveSettings.json
+--- !u!114 &981538051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981538046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1549b50c86fd44772ba1b2b9ff27bb60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterfallBodyControlReceiver
+  host: 0.0.0.0
+  port: 55000
+  listenOnStart: 1
+  logPackets: 0
+  waterfall: {fileID: 0}
+  onlyAffectWaterfallA: 1
+  responseSpeed: 4
+  staleAfterSeconds: 1.25
+  speedRange: {x: 0.35, y: 2.25}
+  densityRange: {x: 0.65, y: 1.45}
+  intensityRange: {x: 0.55, y: 1.2}
+  glitchRange: {x: 0.02, y: 0.2}
+  accentRange: {x: 0.005, y: 0.14}
+  pulseTriggerThreshold: 0.5
+  accentTriggerThreshold: 0.72
+  pulseResponseTarget: 2
+  pulseBoostDuration: 0.22
+  pulseSpeedBoost: 1.15
+  pulseDensityBoost: 0.18
+  pulseGlitchBoost: 0.35
+  pulseAccentBoost: 0.75
+  pulseFreezeBoost: 0.22
+  upwardStreamProbabilityRange: {x: 0.18, y: 0.62}
+  freezeProbabilityRange: {x: 0.08, y: 0.34}
+  labelAlphaRange: {x: 0.34, y: 0.78}
+  asymmetryRecomposeThreshold: 0.08
+  asymmetryRecomposeGain: 1.8
+  asymmetryRecomposeCooldown: 0.35
+  asymmetryDeltaTrigger: 0.06
 --- !u!1 &992788407
 GameObject:
   m_ObjectHideFlags: 0
@@ -2447,6 +2560,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverComponent: {fileID: 929797343}
   Delay: 0
+  enableLostTrackingFallback: 1
+  fallbackToLastValidPose: 1
+  lostPoseIdentityAngle: 2
+  lostPoseBlendSpeed: 12
+  logLostTrackingFallback: 0
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
@@ -3607,7 +3725,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fdeca57aba5444292698f7040b8a9dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OutputModeManager
-  defaultMode: 2
+  defaultMode: 0
   logSelectedMode: 1
   useEditorPreviewMode: 1
   editorPreviewMode: 2

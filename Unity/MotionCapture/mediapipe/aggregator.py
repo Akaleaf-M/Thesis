@@ -6,6 +6,7 @@ import math
 # ---- config ----
 IN_PORTS = [52833, 52834, 52835, 52836]   # aggregator input ports
 OUT_ADDR = ("127.0.0.1", 53000)           # Unity collective listens here
+MIRROR_ADDR = ("127.0.0.1", 53100)        # optional sidecar bridge input
 STALE_SEC = 0.5
 TARGET_HZ = 30
 
@@ -75,6 +76,7 @@ def main():
 
     out_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     print(f"[agg] sending to {OUT_ADDR[0]}:{OUT_ADDR[1]}")
+    print(f"[agg] mirroring to {MIRROR_ADDR[0]}:{MIRROR_ADDR[1]}")
 
     latest = {}  # port -> (timestamp, joint_dict)
     last_send = 0.0
@@ -126,7 +128,9 @@ def main():
                 fused[j] = (*q_avg, vis_avg)
 
         payload = build_mprot(fused)
-        out_sock.sendto(payload.encode("utf-8"), OUT_ADDR)
+        encoded_payload = payload.encode("utf-8")
+        out_sock.sendto(encoded_payload, OUT_ADDR)
+        out_sock.sendto(encoded_payload, MIRROR_ADDR)
         last_send = now
 
 if __name__ == "__main__":

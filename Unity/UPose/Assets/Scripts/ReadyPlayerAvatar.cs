@@ -25,6 +25,13 @@ public class ReadyPlayerAvatar : MonoBehaviour
 
     public int Delay = 0;
 
+    [Header("Lost Tracking Fallback")]
+    public bool enableLostTrackingFallback = true;
+    public bool fallbackToLastValidPose = true;
+    public float lostPoseIdentityAngle = 2f;
+    public float lostPoseBlendSpeed = 12f;
+    public bool logLostTrackingFallback = false;
+
     private Transform Hips;
     private Transform Spine;
     private Transform LeftUpLeg;
@@ -45,6 +52,28 @@ public class ReadyPlayerAvatar : MonoBehaviour
     private Transform RightPalm;
 
     private bool AVATAR_LOADED = false;
+    private bool lostTrackingFallbackActive;
+    private bool hasLastValidPose;
+    private Quaternion restHipsRotation;
+    private Quaternion restSpineRotation;
+    private Quaternion restRightArmRotation;
+    private Quaternion restLeftArmRotation;
+    private Quaternion restLeftForeArmRotation;
+    private Quaternion restRightForeArmRotation;
+    private Quaternion restRightUpLegRotation;
+    private Quaternion restLeftUpLegRotation;
+    private Quaternion restLeftLegRotation;
+    private Quaternion restRightLegRotation;
+    private Quaternion lastValidHipsRotation;
+    private Quaternion lastValidSpineRotation;
+    private Quaternion lastValidRightArmRotation;
+    private Quaternion lastValidLeftArmRotation;
+    private Quaternion lastValidLeftForeArmRotation;
+    private Quaternion lastValidRightForeArmRotation;
+    private Quaternion lastValidRightUpLegRotation;
+    private Quaternion lastValidLeftUpLegRotation;
+    private Quaternion lastValidLeftLegRotation;
+    private Quaternion lastValidRightLegRotation;
 
     public enum AvatarChoice
     {
@@ -413,8 +442,23 @@ public class ReadyPlayerAvatar : MonoBehaviour
         }
 
         SetLayerRecursively(gameObject, gameObject.layer);
+        CaptureRestPose();
 
         AVATAR_LOADED = true;
+    }
+
+    private void CaptureRestPose()
+    {
+        restHipsRotation = Hips != null ? Hips.localRotation : Quaternion.identity;
+        restSpineRotation = Spine != null ? Spine.localRotation : Quaternion.identity;
+        restRightArmRotation = RightArm != null ? RightArm.localRotation : Quaternion.identity;
+        restLeftArmRotation = LeftArm != null ? LeftArm.localRotation : Quaternion.identity;
+        restLeftForeArmRotation = LeftForeArm != null ? LeftForeArm.localRotation : Quaternion.identity;
+        restRightForeArmRotation = RightForeArm != null ? RightForeArm.localRotation : Quaternion.identity;
+        restRightUpLegRotation = RightUpLeg != null ? RightUpLeg.localRotation : Quaternion.identity;
+        restLeftUpLegRotation = LeftUpLeg != null ? LeftUpLeg.localRotation : Quaternion.identity;
+        restLeftLegRotation = LeftLeg != null ? LeftLeg.localRotation : Quaternion.identity;
+        restRightLegRotation = RightLeg != null ? RightLeg.localRotation : Quaternion.identity;
     }
 
     private void ApplyAvatarMaterialOverride()
@@ -1198,6 +1242,91 @@ public class ReadyPlayerAvatar : MonoBehaviour
     public Quaternion getRightElbowRotation() { return server.GetRotation(Landmark.RIGHT_ELBOW); }
     public Quaternion getLeftElbowRotation() { return server.GetRotation(Landmark.LEFT_ELBOW); }
 
+    private bool IsValidQuaternion(Quaternion q)
+    {
+        if (!IsFinite(q.x) || !IsFinite(q.y) || !IsFinite(q.z) || !IsFinite(q.w))
+            return false;
+
+        float lengthSq = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+        return lengthSq > 0.0001f;
+    }
+
+    private bool IsFinite(float value)
+    {
+        return !float.IsNaN(value) && !float.IsInfinity(value);
+    }
+
+    private bool IsLikelyLostTrackingPose(
+        Quaternion pelvis,
+        Quaternion torso,
+        Quaternion leftShoulder,
+        Quaternion rightShoulder,
+        Quaternion leftElbow,
+        Quaternion rightElbow,
+        Quaternion leftHip,
+        Quaternion rightHip,
+        Quaternion leftKnee,
+        Quaternion rightKnee)
+    {
+        if (!enableLostTrackingFallback)
+            return false;
+
+        if (!IsValidQuaternion(pelvis) || !IsValidQuaternion(torso) ||
+            !IsValidQuaternion(leftShoulder) || !IsValidQuaternion(rightShoulder) ||
+            !IsValidQuaternion(leftElbow) || !IsValidQuaternion(rightElbow) ||
+            !IsValidQuaternion(leftHip) || !IsValidQuaternion(rightHip) ||
+            !IsValidQuaternion(leftKnee) || !IsValidQuaternion(rightKnee))
+            return true;
+
+        float threshold = Mathf.Max(0.01f, lostPoseIdentityAngle);
+        return Quaternion.Angle(Quaternion.identity, pelvis) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, torso) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, leftShoulder) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, rightShoulder) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, leftElbow) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, rightElbow) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, leftHip) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, rightHip) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, leftKnee) <= threshold &&
+               Quaternion.Angle(Quaternion.identity, rightKnee) <= threshold;
+    }
+
+    private void ApplyLostTrackingFallback()
+    {
+        if (fallbackToLastValidPose && !hasLastValidPose)
+            return;
+
+        float t = 1f - Mathf.Exp(-Mathf.Max(0.001f, lostPoseBlendSpeed) * Time.deltaTime);
+
+        bool useLastValid = fallbackToLastValidPose && hasLastValidPose;
+
+        Hips.localRotation = Quaternion.Slerp(Hips.localRotation, useLastValid ? lastValidHipsRotation : restHipsRotation, t);
+        Spine.localRotation = Quaternion.Slerp(Spine.localRotation, useLastValid ? lastValidSpineRotation : restSpineRotation, t);
+        RightArm.localRotation = Quaternion.Slerp(RightArm.localRotation, useLastValid ? lastValidRightArmRotation : restRightArmRotation, t);
+        LeftArm.localRotation = Quaternion.Slerp(LeftArm.localRotation, useLastValid ? lastValidLeftArmRotation : restLeftArmRotation, t);
+        LeftForeArm.localRotation = Quaternion.Slerp(LeftForeArm.localRotation, useLastValid ? lastValidLeftForeArmRotation : restLeftForeArmRotation, t);
+        RightForeArm.localRotation = Quaternion.Slerp(RightForeArm.localRotation, useLastValid ? lastValidRightForeArmRotation : restRightForeArmRotation, t);
+        RightUpLeg.localRotation = Quaternion.Slerp(RightUpLeg.localRotation, useLastValid ? lastValidRightUpLegRotation : restRightUpLegRotation, t);
+        LeftUpLeg.localRotation = Quaternion.Slerp(LeftUpLeg.localRotation, useLastValid ? lastValidLeftUpLegRotation : restLeftUpLegRotation, t);
+        LeftLeg.localRotation = Quaternion.Slerp(LeftLeg.localRotation, useLastValid ? lastValidLeftLegRotation : restLeftLegRotation, t);
+        RightLeg.localRotation = Quaternion.Slerp(RightLeg.localRotation, useLastValid ? lastValidRightLegRotation : restRightLegRotation, t);
+    }
+
+    private void CaptureLastValidPose()
+    {
+        lastValidHipsRotation = Hips.localRotation;
+        lastValidSpineRotation = Spine.localRotation;
+        lastValidRightArmRotation = RightArm.localRotation;
+        lastValidLeftArmRotation = LeftArm.localRotation;
+        lastValidLeftForeArmRotation = LeftForeArm.localRotation;
+        lastValidRightForeArmRotation = RightForeArm.localRotation;
+        lastValidRightUpLegRotation = RightUpLeg.localRotation;
+        lastValidLeftUpLegRotation = LeftUpLeg.localRotation;
+        lastValidLeftLegRotation = LeftLeg.localRotation;
+        lastValidRightLegRotation = RightLeg.localRotation;
+        hasLastValidPose = true;
+    }
+
     public void MoveToFloor(float floorY)
     {
         if (LeftFoot == null || RightFoot == null) return;
@@ -1226,16 +1355,57 @@ public class ReadyPlayerAvatar : MonoBehaviour
         if (RightArm == null || LeftArm == null || RightForeArm == null || LeftForeArm == null) return;
         if (RightUpLeg == null || LeftUpLeg == null || LeftLeg == null || RightLeg == null) return;
 
-        Hips.localRotation = server.GetRotation(Landmark.PELVIS, Delay);
-        Spine.localRotation = server.GetRotation(Landmark.SHOULDER_CENTER, Delay);
-        RightArm.localRotation = Quaternion.Euler(0, 0, 90) * server.GetRotation(Landmark.RIGHT_SHOULDER, Delay);
-        LeftArm.localRotation = Quaternion.Euler(0, 0, -90) * server.GetRotation(Landmark.LEFT_SHOULDER, Delay);
-        LeftForeArm.localRotation = server.GetRotation(Landmark.LEFT_ELBOW, Delay);
-        RightForeArm.localRotation = server.GetRotation(Landmark.RIGHT_ELBOW, Delay);
-        RightUpLeg.localRotation = server.GetRotation(Landmark.RIGHT_HIP, Delay);
-        LeftUpLeg.localRotation = server.GetRotation(Landmark.LEFT_HIP, Delay);
-        LeftLeg.localRotation = server.GetRotation(Landmark.LEFT_KNEE, Delay);
-        RightLeg.localRotation = server.GetRotation(Landmark.RIGHT_KNEE, Delay);
+        Quaternion pelvis = server.GetRotation(Landmark.PELVIS, Delay);
+        Quaternion torso = server.GetRotation(Landmark.SHOULDER_CENTER, Delay);
+        Quaternion leftShoulder = server.GetRotation(Landmark.LEFT_SHOULDER, Delay);
+        Quaternion rightShoulder = server.GetRotation(Landmark.RIGHT_SHOULDER, Delay);
+        Quaternion leftElbow = server.GetRotation(Landmark.LEFT_ELBOW, Delay);
+        Quaternion rightElbow = server.GetRotation(Landmark.RIGHT_ELBOW, Delay);
+        Quaternion leftHip = server.GetRotation(Landmark.LEFT_HIP, Delay);
+        Quaternion rightHip = server.GetRotation(Landmark.RIGHT_HIP, Delay);
+        Quaternion leftKnee = server.GetRotation(Landmark.LEFT_KNEE, Delay);
+        Quaternion rightKnee = server.GetRotation(Landmark.RIGHT_KNEE, Delay);
+
+        bool lostTracking = IsLikelyLostTrackingPose(
+            pelvis,
+            torso,
+            leftShoulder,
+            rightShoulder,
+            leftElbow,
+            rightElbow,
+            leftHip,
+            rightHip,
+            leftKnee,
+            rightKnee
+        );
+
+        if (lostTracking)
+        {
+            if (!lostTrackingFallbackActive && logLostTrackingFallback)
+                Debug.Log($"[{name}] Lost tracking pose detected. Applying last valid pose fallback.");
+
+            lostTrackingFallbackActive = true;
+            ApplyLostTrackingFallback();
+        }
+        else
+        {
+            if (lostTrackingFallbackActive && logLostTrackingFallback)
+                Debug.Log($"[{name}] Tracking pose restored.");
+
+            lostTrackingFallbackActive = false;
+
+            Hips.localRotation = pelvis;
+            Spine.localRotation = torso;
+            RightArm.localRotation = Quaternion.Euler(0, 0, 90) * rightShoulder;
+            LeftArm.localRotation = Quaternion.Euler(0, 0, -90) * leftShoulder;
+            LeftForeArm.localRotation = leftElbow;
+            RightForeArm.localRotation = rightElbow;
+            RightUpLeg.localRotation = rightHip;
+            LeftUpLeg.localRotation = leftHip;
+            LeftLeg.localRotation = leftKnee;
+            RightLeg.localRotation = rightKnee;
+            CaptureLastValidPose();
+        }
 
         if (!lockAvatarRootToOrigin && moveToFloor) MoveToFloor(floorLevel);
         if (keepRootAtOrigin) ApplyAvatarRootPlacement();

@@ -36,6 +36,22 @@ mkdir -p "$LOG_DIR"
 # P3: camera ${CAM_P3} -> Unity solo 52735, aggregator input 52835
 # P4: camera ${CAM_P4} -> Unity solo 52736, aggregator input 52836
 # Aggregator output -> Unity collective 53000
+# Aggregator mirror output -> body bridge input 53100
+# Body bridge MIDI output -> IAC / VCV Rack
+# Body bridge UDP output -> Unity WaterfallA 55000
+
+START_BODY_BRIDGE=1
+BODY_BRIDGE_OUTPUT_MODE=midi
+BODY_BRIDGE_MIDI_PORT_NAME=IAC
+BODY_BRIDGE_MIDI_CHANNEL=1
+BODY_BRIDGE_MIDI_SEND_RATE=20
+BODY_BRIDGE_MIDI_CHANGE_THRESHOLD=0.02
+BODY_BRIDGE_UNITY_OUTPUT=1
+
+# Terminal.app tab automation can be fragile when macOS accessibility
+# permissions are not granted. The default background/logs mode is more
+# predictable for installation startup.
+USE_TERMINAL_TABS=0
 
 cleanup() {
   echo
@@ -90,6 +106,39 @@ launch_process() {
   local pid=$!
   echo "$pid" >> "$PID_FILE"
   echo "  pid: $pid"
+}
+
+build_body_bridge_command() {
+  BODY_BRIDGE_CMD=(python -u body_control_bridge.py)
+  BODY_BRIDGE_CMD+=(--listen-port 53100)
+  BODY_BRIDGE_CMD+=(--output-mode "$BODY_BRIDGE_OUTPUT_MODE")
+  BODY_BRIDGE_CMD+=(--midi-port-name "$BODY_BRIDGE_MIDI_PORT_NAME")
+  BODY_BRIDGE_CMD+=(--midi-channel "$BODY_BRIDGE_MIDI_CHANNEL")
+  BODY_BRIDGE_CMD+=(--midi-send-rate "$BODY_BRIDGE_MIDI_SEND_RATE")
+  BODY_BRIDGE_CMD+=(--midi-change-threshold "$BODY_BRIDGE_MIDI_CHANGE_THRESHOLD")
+
+  if [[ "$BODY_BRIDGE_UNITY_OUTPUT" == "1" ]]; then
+    BODY_BRIDGE_CMD+=(--unity-output)
+  fi
+}
+
+check_body_bridge_dependencies() {
+  if [[ "$START_BODY_BRIDGE" != "1" ]]; then
+    return 0
+  fi
+
+  if [[ "$BODY_BRIDGE_OUTPUT_MODE" == "midi" || "$BODY_BRIDGE_OUTPUT_MODE" == "both" ]]; then
+    if ! python -c "import mido, rtmidi" >/dev/null 2>&1; then
+      echo "ERROR: body bridge MIDI mode requires mido and python-rtmidi in conda env: $CONDA_ENV"
+      echo "Install them with:"
+      echo "  python -m pip install mido python-rtmidi"
+      echo
+      echo "Temporary alternatives:"
+      echo "  - set START_BODY_BRIDGE=0 to launch pose capture only"
+      echo "  - set BODY_BRIDGE_OUTPUT_MODE=osc if you only need OSC / Unity UDP"
+      exit 1
+    fi
+  fi
 }
 
 shell_quote() {
@@ -152,12 +201,17 @@ launch_terminal_tabs() {
   mkdir -p "$COMMAND_DIR"
 
   local agg_cmd="$COMMAND_DIR/aggregator.command"
+  local bridge_cmd="$COMMAND_DIR/body_bridge.command"
   local p1_cmd="$COMMAND_DIR/p1.command"
   local p2_cmd="$COMMAND_DIR/p2.command"
   local p3_cmd="$COMMAND_DIR/p3.command"
   local p4_cmd="$COMMAND_DIR/p4.command"
 
   write_terminal_command "$agg_cmd" python -u aggregator.py
+  if [[ "$START_BODY_BRIDGE" == "1" ]]; then
+    build_body_bridge_command
+    write_terminal_command "$bridge_cmd" "${BODY_BRIDGE_CMD[@]}"
+  fi
   write_terminal_command "$p1_cmd" python -u run_mediapipe.py "$CAM_P1" 52733 52833
   write_terminal_command "$p2_cmd" python -u run_mediapipe.py "$CAM_P2" 52734 52834
   write_terminal_command "$p3_cmd" python -u run_mediapipe.py "$CAM_P3" 52735 52835
@@ -168,6 +222,24 @@ tell application "Terminal"
   activate
   do script "bash $(shell_quote "$agg_cmd")"
 end tell
+OSA
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
+  if [[ "$START_BODY_BRIDGE" == "1" ]]; then
+    osascript <<OSA
+delay 0.6
+tell application "System Events" to keystroke "t" using command down
+delay 0.3
+tell application "Terminal" to do script "bash $(shell_quote "$bridge_cmd")" in selected tab of front window
+OSA
+    if [[ $? -ne 0 ]]; then
+      return 1
+    fi
+  fi
+
+  osascript <<OSA
 delay 0.6
 tell application "System Events" to keystroke "t" using command down
 delay 0.3
@@ -185,6 +257,9 @@ tell application "System Events" to keystroke "t" using command down
 delay 0.3
 tell application "Terminal" to do script "bash $(shell_quote "$p4_cmd")" in selected tab of front window
 OSA
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
 }
 
 activate_conda
@@ -196,22 +271,43 @@ echo "Starting pose system from: $SCRIPT_DIR"
 echo "Conda environment: $CONDA_ENV"
 echo "PYTHONPATH includes: $SCRIPT_DIR/../upose"
 echo "Confirm camera indexes with: python list_cameras_mac.py"
-echo
-
-echo "Trying to open Terminal.app tabs..."
-if launch_terminal_tabs; then
-  echo "Launched pose system in Terminal.app tabs."
-  echo "Stop each tab with Ctrl+C, or close the Terminal window."
-  echo "If Terminal tab automation is blocked, grant Terminal/osascript accessibility permission and rerun."
-  exit 0
+if [[ "$START_BODY_BRIDGE" == "1" ]]; then
+  echo "Body bridge: enabled"
+  echo "  mode: $BODY_BRIDGE_OUTPUT_MODE"
+  echo "  MIDI port: $BODY_BRIDGE_MIDI_PORT_NAME"
+  echo "  Unity WaterfallA UDP: $([[ "$BODY_BRIDGE_UNITY_OUTPUT" == "1" ]] && echo "enabled on 55000" || echo "disabled")"
+else
+  echo "Body bridge: disabled"
 fi
-
-echo "Terminal.app tab launch failed. Falling back to background processes with logs."
 echo
+
+check_body_bridge_dependencies
+
+if [[ "$USE_TERMINAL_TABS" == "1" ]]; then
+  echo "Trying to open Terminal.app tabs..."
+  if launch_terminal_tabs; then
+    echo "Launched pose system in Terminal.app tabs."
+    echo "Stop each tab with Ctrl+C, or close the Terminal window."
+    echo "If Terminal tab automation is blocked, grant Terminal/osascript accessibility permission and rerun."
+    exit 0
+  fi
+
+  echo "Terminal.app tab launch failed. Falling back to background processes with logs."
+  echo
+else
+  echo "Terminal.app tabs are disabled. Launching background processes with logs."
+  echo
+fi
 
 launch_process "aggregator_52833_52836_to_53000" python -u aggregator.py
 
 sleep 2
+
+if [[ "$START_BODY_BRIDGE" == "1" ]]; then
+  build_body_bridge_command
+  launch_process "body_bridge_53100_to_midi_unity55000" "${BODY_BRIDGE_CMD[@]}"
+  sleep 1
+fi
 
 launch_process "mediapipe_P1_cam${CAM_P1}_unity52733_agg52833" python -u run_mediapipe.py "$CAM_P1" 52733 52833
 launch_process "mediapipe_P2_cam${CAM_P2}_unity52734_agg52834" python -u run_mediapipe.py "$CAM_P2" 52734 52834
@@ -219,7 +315,11 @@ launch_process "mediapipe_P3_cam${CAM_P3}_unity52735_agg52835" python -u run_med
 launch_process "mediapipe_P4_cam${CAM_P4}_unity52736_agg52836" python -u run_mediapipe.py "$CAM_P4" 52736 52836
 
 echo
-echo "Launched aggregator and four MediaPipe capture processes."
+if [[ "$START_BODY_BRIDGE" == "1" ]]; then
+  echo "Launched aggregator, body bridge, and four MediaPipe capture processes."
+else
+  echo "Launched aggregator and four MediaPipe capture processes."
+fi
 echo "Logs: $LOG_DIR"
 echo "PID file: $PID_FILE"
 echo
@@ -229,6 +329,7 @@ echo "  while read -r pid; do kill \"\$pid\" 2>/dev/null; done < \"$PID_FILE\""
 echo "Or, if needed:"
 echo "  pkill -f run_mediapipe.py"
 echo "  pkill -f aggregator.py"
+echo "  pkill -f body_control_bridge.py"
 echo
 
 while true; do
