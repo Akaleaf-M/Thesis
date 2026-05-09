@@ -97,6 +97,8 @@ public class ReadyPlayerAvatar : MonoBehaviour
     [Header("Root Placement")]
     public bool lockAvatarRootToOrigin = true;
     public Vector3 avatarRootOffset = Vector3.zero;
+    public bool orientInitialRestPoseToViewer = true;
+    public Vector3 initialViewerFacingRootEuler = new Vector3(0f, 180f, 0f);
     public bool keepRootAtOrigin = false;
     public bool debugRootPlacement = false;
 
@@ -160,6 +162,8 @@ public class ReadyPlayerAvatar : MonoBehaviour
     private float meshGlitchRefreshTimer;
     private int currentMeshGlitchEdgesPerRenderer;
     private bool meshGlitchVisibleThisFrame;
+    private Quaternion initialRootRotation;
+    private bool useInitialViewerFacingRoot;
 
     private class MeshGlitchOverlay
     {
@@ -172,6 +176,8 @@ public class ReadyPlayerAvatar : MonoBehaviour
 
     private void Start()
     {
+        initialRootRotation = transform.rotation;
+
         if (serverComponent != null)
         {
             server = serverComponent as MotionTrackingPose;
@@ -313,6 +319,7 @@ public class ReadyPlayerAvatar : MonoBehaviour
 
         Debug.Log($"[{name}] GLTF file is loaded.");
 
+        useInitialViewerFacingRoot = true;
         ApplyAvatarRootPlacement();
         ApplyAvatarMaterialOverride();
         InitializeMeshGlitchOverlays();
@@ -1341,9 +1348,13 @@ public class ReadyPlayerAvatar : MonoBehaviour
         if (!lockAvatarRootToOrigin) return;
 
         transform.position = avatarRootOffset;
+        if (orientInitialRestPoseToViewer && useInitialViewerFacingRoot)
+            transform.rotation = Quaternion.Euler(initialViewerFacingRootEuler);
+        else
+            transform.rotation = initialRootRotation;
 
         if (debugRootPlacement)
-            Debug.Log($"[{name}] Avatar root placed at {transform.position}.");
+            Debug.Log($"[{name}] Avatar root placed at {transform.position}, rotation {transform.rotation.eulerAngles}.");
     }
 
     private void Update()
@@ -1385,6 +1396,7 @@ public class ReadyPlayerAvatar : MonoBehaviour
                 Debug.Log($"[{name}] Lost tracking pose detected. Applying last valid pose fallback.");
 
             lostTrackingFallbackActive = true;
+            useInitialViewerFacingRoot = !hasLastValidPose;
             ApplyLostTrackingFallback();
         }
         else
@@ -1393,6 +1405,8 @@ public class ReadyPlayerAvatar : MonoBehaviour
                 Debug.Log($"[{name}] Tracking pose restored.");
 
             lostTrackingFallbackActive = false;
+            useInitialViewerFacingRoot = false;
+            ApplyAvatarRootPlacement();
 
             Hips.localRotation = pelvis;
             Spine.localRotation = torso;

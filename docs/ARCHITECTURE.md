@@ -739,6 +739,8 @@ Current components:
 - `ReadyPlayerAvatar.avatarMaterial`
 - `ReadyPlayerAvatar.enableAvatarGlitch`
 - `ReadyPlayerAvatar.enableLostTrackingFallback`
+- `ReadyPlayerAvatar.orientInitialRestPoseToViewer`
+- `ReadyPlayerAvatar.initialViewerFacingRootEuler`
 - video glitch parameters
 - mesh glitch parameters
 - lost-tracking fallback parameters
@@ -750,6 +752,7 @@ The lost-tracking fallback is separate from the glitch visual system. Normal tra
 Current first-pass fallback behavior:
 
 - Captures the loaded avatar's rest pose after bones and helper colliders are initialized.
+- Uses a separate upright viewer-facing root rotation before the first valid tracked pose, then restores the scene/import root rotation when valid tracking begins.
 - Captures the last valid tracked avatar pose during normal pass-through motion.
 - Detects likely tracking loss when pelvis, torso, shoulders, elbows, hips, and knees are all close to identity rotation.
 - Blends to the last valid tracked pose by default, avoiding the raw model rest / T-pose orientation that may be supine.

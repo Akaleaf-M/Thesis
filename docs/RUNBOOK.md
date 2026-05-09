@@ -1161,8 +1161,10 @@ Check these Inspector fields on each active avatar:
 | `Lost Pose Identity Angle` | `2` | How close all incoming rotations must be to identity before fallback activates |
 | `Lost Pose Blend Speed` | `12` | How quickly the avatar blends to fallback pose |
 | `Log Lost Tracking Fallback` | disabled | Enable temporarily to confirm when fallback activates/restores |
+| `Orient Initial Rest Pose To Viewer` | enabled | Uses a separate viewer-facing startup root rotation before the first valid body frame |
+| `Initial Viewer Facing Root Euler` | `(0, 180, 0)` | Adjust only if the startup avatar is not upright or not facing the audience |
 
-With `Fallback To Last Valid Pose` enabled, the avatar will not apply the raw rest / T-pose before the first valid body frame. This avoids the supine rest orientation seen on the current avatar.
+With `Fallback To Last Valid Pose` enabled, the avatar will not apply the raw rest / T-pose before the first valid body frame. `Orient Initial Rest Pose To Viewer` uses the startup root rotation while no valid body has been seen, then switches back to the scene/import root rotation when valid tracking begins.
 
 If fallback does not activate when the person leaves frame, raise `Lost Pose Identity Angle` slightly, for example to `4`. If fallback activates during valid subtle motion, lower it toward `1`.
 
