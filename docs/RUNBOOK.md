@@ -1161,10 +1161,14 @@ Check these Inspector fields on each active avatar:
 | `Lost Pose Identity Angle` | `2` | How close all incoming rotations must be to identity before fallback activates |
 | `Lost Pose Blend Speed` | `12` | How quickly the avatar blends to fallback pose |
 | `Log Lost Tracking Fallback` | disabled | Enable temporarily to confirm when fallback activates/restores |
+| `Enable Motion Smoothing` | enabled | Smooths valid tracked bone rotations before applying them to the avatar |
+| `Motion Smoothing Speed` | `18` | Higher is more responsive; lower is smoother but more delayed |
 | `Orient Initial Rest Pose To Viewer` | enabled | Uses a separate viewer-facing startup root rotation before the first valid body frame |
 | `Initial Viewer Facing Root Euler` | `(0, 180, 0)` | Adjust only if the startup avatar is not upright or not facing the audience |
 
 With `Fallback To Last Valid Pose` enabled, the avatar will not apply the raw rest / T-pose before the first valid body frame. `Orient Initial Rest Pose To Viewer` uses the startup root rotation while no valid body has been seen, then switches back to the scene/import root rotation when valid tracking begins.
+
+For jittery camera input, lower `Motion Smoothing Speed` toward `10` to `14`. If the avatar feels too delayed, raise it toward `24` to `30`, or disable `Enable Motion Smoothing` to return to direct bone assignment.
 
 If fallback does not activate when the person leaves frame, raise `Lost Pose Identity Angle` slightly, for example to `4`. If fallback activates during valid subtle motion, lower it toward `1`.
 

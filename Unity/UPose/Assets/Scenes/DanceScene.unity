@@ -291,12 +291,16 @@ MonoBehaviour:
   lostPoseIdentityAngle: 2
   lostPoseBlendSpeed: 12
   logLostTrackingFallback: 0
+  enableMotionSmoothing: 1
+  motionSmoothingSpeed: 18
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
   lockAvatarRootToOrigin: 1
   avatarRootOffset: {x: 0, y: 0, z: 0}
+  orientInitialRestPoseToViewer: 1
+  initialViewerFacingRootEuler: {x: 0, y: 180, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
   overrideAvatarMaterials: 1
@@ -710,12 +714,16 @@ MonoBehaviour:
   lostPoseIdentityAngle: 2
   lostPoseBlendSpeed: 12
   logLostTrackingFallback: 0
+  enableMotionSmoothing: 1
+  motionSmoothingSpeed: 18
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
   lockAvatarRootToOrigin: 1
   avatarRootOffset: {x: 0, y: 0, z: 0}
+  orientInitialRestPoseToViewer: 1
+  initialViewerFacingRootEuler: {x: 0, y: 180, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
   overrideAvatarMaterials: 1
@@ -1377,12 +1385,16 @@ MonoBehaviour:
   lostPoseIdentityAngle: 2
   lostPoseBlendSpeed: 12
   logLostTrackingFallback: 0
+  enableMotionSmoothing: 1
+  motionSmoothingSpeed: 18
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
   lockAvatarRootToOrigin: 1
   avatarRootOffset: {x: 0, y: 0, z: 0}
+  orientInitialRestPoseToViewer: 1
+  initialViewerFacingRootEuler: {x: 0, y: 180, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
   overrideAvatarMaterials: 1
@@ -2127,12 +2139,16 @@ MonoBehaviour:
   lostPoseIdentityAngle: 2
   lostPoseBlendSpeed: 12
   logLostTrackingFallback: 0
+  enableMotionSmoothing: 1
+  motionSmoothingSpeed: 18
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
   lockAvatarRootToOrigin: 1
   avatarRootOffset: {x: 0, y: 0, z: 0}
+  orientInitialRestPoseToViewer: 1
+  initialViewerFacingRootEuler: {x: 0, y: 180, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
   overrideAvatarMaterials: 1
@@ -2565,12 +2581,16 @@ MonoBehaviour:
   lostPoseIdentityAngle: 2
   lostPoseBlendSpeed: 12
   logLostTrackingFallback: 0
+  enableMotionSmoothing: 1
+  motionSmoothingSpeed: 18
   onlineAvatar: 0
   localFilename: M1.glb
   moveToFloor: 0
   floorLevel: -1
   lockAvatarRootToOrigin: 1
   avatarRootOffset: {x: 0, y: 0, z: -2}
+  orientInitialRestPoseToViewer: 1
+  initialViewerFacingRootEuler: {x: 0, y: 180, z: 0}
   keepRootAtOrigin: 0
   debugRootPlacement: 0
   overrideAvatarMaterials: 1
@@ -3728,7 +3748,7 @@ MonoBehaviour:
   defaultMode: 0
   logSelectedMode: 1
   useEditorPreviewMode: 1
-  editorPreviewMode: 2
+  editorPreviewMode: 0
   useRootNameFallback: 1
   waterfallRootNames:
   - BackgroundRoot

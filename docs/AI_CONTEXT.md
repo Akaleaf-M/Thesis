@@ -21,7 +21,7 @@ The goal is not accurate individual representation, but a posthuman collective p
 - OutputModeManager selects Fragment / WaterfallA / WaterfallB / Full output modes
 - WaterfallController manages procedural WaterfallA / WaterfallB visuals under BackgroundRoot
 - WaterfallAudioReactiveController lets WaterfallB react to system / VCV audio routed through BlackHole 2ch
-- ReadyPlayerAvatar keeps normal tracked motion as direct pass-through, but includes a narrow lost-tracking fallback that detects all-identity / invalid mprot rotations and blends the avatar to the last valid tracked pose. It avoids using the raw rest / T-pose by default because this avatar's rest orientation can appear supine. Before the first valid tracked pose, the avatar can use `initialViewerFacingRootEuler` for an upright viewer-facing startup pose; once valid tracking arrives, it restores the scene/import root rotation needed by UPose tracking.
+- ReadyPlayerAvatar applies optional exponential quaternion smoothing to normal tracked motion through `enableMotionSmoothing` / `motionSmoothingSpeed`. It also includes a narrow lost-tracking fallback that detects all-identity / invalid mprot rotations and blends the avatar to the last valid tracked pose. It avoids using the raw rest / T-pose by default because this avatar's rest orientation can appear supine. Before the first valid tracked pose, the avatar can use `initialViewerFacingRootEuler` for an upright viewer-facing startup pose; once valid tracking arrives, it restores the scene/import root rotation needed by UPose tracking.
 - Projection mapping may be handled later with MadMapper or Resolume
 
 ## Current Known System Flow

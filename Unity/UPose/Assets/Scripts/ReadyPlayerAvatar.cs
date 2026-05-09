@@ -32,6 +32,10 @@ public class ReadyPlayerAvatar : MonoBehaviour
     public float lostPoseBlendSpeed = 12f;
     public bool logLostTrackingFallback = false;
 
+    [Header("Motion Smoothing")]
+    public bool enableMotionSmoothing = true;
+    public float motionSmoothingSpeed = 18f;
+
     private Transform Hips;
     private Transform Spine;
     private Transform LeftUpLeg;
@@ -1334,6 +1338,42 @@ public class ReadyPlayerAvatar : MonoBehaviour
         hasLastValidPose = true;
     }
 
+    private Quaternion SmoothRotation(Transform bone, Quaternion targetRotation, float t)
+    {
+        if (!enableMotionSmoothing)
+            return targetRotation;
+
+        return Quaternion.Slerp(bone.localRotation, targetRotation, t);
+    }
+
+    private void ApplyTrackedPose(
+        Quaternion pelvis,
+        Quaternion torso,
+        Quaternion leftShoulder,
+        Quaternion rightShoulder,
+        Quaternion leftElbow,
+        Quaternion rightElbow,
+        Quaternion leftHip,
+        Quaternion rightHip,
+        Quaternion leftKnee,
+        Quaternion rightKnee)
+    {
+        float t = enableMotionSmoothing
+            ? 1f - Mathf.Exp(-Mathf.Max(0.001f, motionSmoothingSpeed) * Time.deltaTime)
+            : 1f;
+
+        Hips.localRotation = SmoothRotation(Hips, pelvis, t);
+        Spine.localRotation = SmoothRotation(Spine, torso, t);
+        RightArm.localRotation = SmoothRotation(RightArm, Quaternion.Euler(0, 0, 90) * rightShoulder, t);
+        LeftArm.localRotation = SmoothRotation(LeftArm, Quaternion.Euler(0, 0, -90) * leftShoulder, t);
+        LeftForeArm.localRotation = SmoothRotation(LeftForeArm, leftElbow, t);
+        RightForeArm.localRotation = SmoothRotation(RightForeArm, rightElbow, t);
+        RightUpLeg.localRotation = SmoothRotation(RightUpLeg, rightHip, t);
+        LeftUpLeg.localRotation = SmoothRotation(LeftUpLeg, leftHip, t);
+        LeftLeg.localRotation = SmoothRotation(LeftLeg, leftKnee, t);
+        RightLeg.localRotation = SmoothRotation(RightLeg, rightKnee, t);
+    }
+
     public void MoveToFloor(float floorY)
     {
         if (LeftFoot == null || RightFoot == null) return;
@@ -1408,16 +1448,18 @@ public class ReadyPlayerAvatar : MonoBehaviour
             useInitialViewerFacingRoot = false;
             ApplyAvatarRootPlacement();
 
-            Hips.localRotation = pelvis;
-            Spine.localRotation = torso;
-            RightArm.localRotation = Quaternion.Euler(0, 0, 90) * rightShoulder;
-            LeftArm.localRotation = Quaternion.Euler(0, 0, -90) * leftShoulder;
-            LeftForeArm.localRotation = leftElbow;
-            RightForeArm.localRotation = rightElbow;
-            RightUpLeg.localRotation = rightHip;
-            LeftUpLeg.localRotation = leftHip;
-            LeftLeg.localRotation = leftKnee;
-            RightLeg.localRotation = rightKnee;
+            ApplyTrackedPose(
+                pelvis,
+                torso,
+                leftShoulder,
+                rightShoulder,
+                leftElbow,
+                rightElbow,
+                leftHip,
+                rightHip,
+                leftKnee,
+                rightKnee
+            );
             CaptureLastValidPose();
         }
 

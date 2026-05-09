@@ -739,6 +739,8 @@ Current components:
 - `ReadyPlayerAvatar.avatarMaterial`
 - `ReadyPlayerAvatar.enableAvatarGlitch`
 - `ReadyPlayerAvatar.enableLostTrackingFallback`
+- `ReadyPlayerAvatar.enableMotionSmoothing`
+- `ReadyPlayerAvatar.motionSmoothingSpeed`
 - `ReadyPlayerAvatar.orientInitialRestPoseToViewer`
 - `ReadyPlayerAvatar.initialViewerFacingRootEuler`
 - video glitch parameters
@@ -747,13 +749,14 @@ Current components:
 
 Author confirmation: avatar glitch Inspector settings have been personally tested by the author and this visual development thread is temporarily complete. Future AI changes should not continue tuning avatar glitch unless explicitly requested.
 
-The lost-tracking fallback is separate from the glitch visual system. Normal tracked motion remains direct pass-through from `MotionTrackingPose.GetRotation(...)` to avatar bones, preserving motion accuracy. The fallback only activates when the incoming `mprot` rotation set looks like tracking loss: all driven rotations are effectively identity, or a quaternion is invalid.
+The lost-tracking fallback and motion smoothing are separate from the glitch visual system. Normal tracked motion is read directly from `MotionTrackingPose.GetRotation(...)`; `ReadyPlayerAvatar` can optionally apply exponential quaternion smoothing while writing those rotations to avatar bones. The fallback only activates when the incoming `mprot` rotation set looks like tracking loss: all driven rotations are effectively identity, or a quaternion is invalid.
 
 Current first-pass fallback behavior:
 
 - Captures the loaded avatar's rest pose after bones and helper colliders are initialized.
 - Uses a separate upright viewer-facing root rotation before the first valid tracked pose, then restores the scene/import root rotation when valid tracking begins.
 - Captures the last valid tracked avatar pose during normal pass-through motion.
+- Optionally smooths valid tracked bone rotations with `motionSmoothingSpeed`.
 - Detects likely tracking loss when pelvis, torso, shoulders, elbows, hips, and knees are all close to identity rotation.
 - Blends to the last valid tracked pose by default, avoiding the raw model rest / T-pose orientation that may be supine.
 - If `fallbackToLastValidPose` is enabled and no valid tracked pose has been seen yet, it leaves the current avatar pose unchanged instead of applying the raw rest pose.
