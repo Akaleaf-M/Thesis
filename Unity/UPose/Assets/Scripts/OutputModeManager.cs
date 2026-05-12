@@ -8,6 +8,7 @@ public enum OutputMode
     Fragment,
     WaterfallA,
     WaterfallB,
+    SonicArts,
     Full
 }
 
@@ -59,6 +60,12 @@ public class OutputModeManager : MonoBehaviour
             mode = OutputMode.WaterfallB,
             width = 1024,
             height = 768
+        },
+        new OutputModeProfile
+        {
+            mode = OutputMode.SonicArts,
+            width = 1920,
+            height = 1080
         },
         new OutputModeProfile
         {
@@ -258,6 +265,14 @@ public class OutputModeManager : MonoBehaviour
         if (normalized.Equals("waterfallb", StringComparison.OrdinalIgnoreCase))
         {
             mode = OutputMode.WaterfallB;
+            return true;
+        }
+
+        if (normalized.Equals("sonicarts", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("sonic", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("sa", StringComparison.OrdinalIgnoreCase))
+        {
+            mode = OutputMode.SonicArts;
             return true;
         }
 

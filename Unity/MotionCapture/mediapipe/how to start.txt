@@ -11,3 +11,8 @@ camera list:
 0 = IR webcam
 1 = Droidcam
 2 = OBS virtual camera
+
+hand gesture: cd Unity/MotionCapture/mediapipe
+python hand_gesture_bridge.py --camera-id 0 --output-mode both --midi-port-name "IAC" --unity-output
+python hand_gesture_bridge.py --camera-id 0 --output-mode both --midi-port-name "IAC" --unity-output --hand-output
+

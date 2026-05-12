@@ -7,6 +7,7 @@ public enum WaterfallPreset
 {
     WaterfallA,
     WaterfallB,
+    SonicArts,
     Custom
 }
 
@@ -315,7 +316,31 @@ public class WaterfallController : MonoBehaviour
         }
 
         if (preset == WaterfallPreset.WaterfallB)
+        {
             ApplyWaterfallBPreset();
+            return;
+        }
+
+        if (preset == WaterfallPreset.SonicArts)
+            ApplySonicArtsPreset();
+    }
+
+    public void SetPreset(WaterfallPreset newPreset)
+    {
+        if (preset == newPreset)
+            return;
+
+        preset = newPreset;
+        ApplyPreset();
+        ClampControlRanges();
+    }
+
+    public void ToggleWaterfallAB()
+    {
+        if (visualMode == WaterfallVisualMode.DataWaterfallVertical)
+            SetPreset(WaterfallPreset.WaterfallB);
+        else
+            SetPreset(WaterfallPreset.SonicArts);
     }
 
     void ApplyWaterfallAPreset()
@@ -375,6 +400,20 @@ public class WaterfallController : MonoBehaviour
         verticalSignalTokens = new string[] { "NOTE_ON", "NOTE_OFF", "CC_VAL", "MSB", "LSB", "VEL_127", "CLK24", "IAC_RX", "MIDI_THRU", "MAP_LEARN" };
     }
 
+    void ApplySonicArtsPreset()
+    {
+        ApplyWaterfallAPreset();
+        preset = WaterfallPreset.SonicArts;
+        worldWidth = 16f;
+        worldHeight = 9f;
+        verticalStreamCount = 260;
+        verticalColumnCount = 160;
+        verticalGuideEveryColumns = 20;
+        verticalBodyChannelEveryColumns = 20;
+        verticalLabelFontSize = 1f;
+        verticalLabelOffscreenMargin = 1.65f;
+    }
+
     void ApplyWaterfallBPreset()
     {
         visualMode = WaterfallVisualMode.TestPatternHorizontal;
@@ -416,7 +455,7 @@ public class WaterfallController : MonoBehaviour
         horizontalUseFixedLabelBaselines = true;
         horizontalTopLabelBaselineY = 1.25f;
         horizontalBottomLabelBaselineY = -1.25f;
-        horizontalLabelFontSize = 0.18f;
+        horizontalLabelFontSize = 1f;
         horizontalLabelAlpha = 0.78f;
         horizontalLabelColor = Color.white;
         horizontalLabelAccentChance = 0.18f;
@@ -438,6 +477,9 @@ public class WaterfallController : MonoBehaviour
 
         if (manager.CurrentMode == OutputMode.WaterfallB)
             preset = WaterfallPreset.WaterfallB;
+
+        if (manager.CurrentMode == OutputMode.SonicArts)
+            preset = WaterfallPreset.SonicArts;
     }
 
     public void SetIntensity(float value)

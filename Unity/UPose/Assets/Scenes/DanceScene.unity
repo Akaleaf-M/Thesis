@@ -2211,6 +2211,7 @@ GameObject:
   - component: {fileID: 981538049}
   - component: {fileID: 981538050}
   - component: {fileID: 981538051}
+  - component: {fileID: 981538052}
   m_Layer: 0
   m_Name: BackgroundRoot
   m_TagString: Untagged
@@ -2526,10 +2527,48 @@ MonoBehaviour:
   upwardStreamProbabilityRange: {x: 0.18, y: 0.62}
   freezeProbabilityRange: {x: 0.08, y: 0.34}
   labelAlphaRange: {x: 0.34, y: 0.78}
+  recomposeOnPulse: 1
+  pulseRecomposeAmount: 0.85
   asymmetryRecomposeThreshold: 0.08
   asymmetryRecomposeGain: 1.8
   asymmetryRecomposeCooldown: 0.35
   asymmetryDeltaTrigger: 0.06
+  switchWaterfallModeOnSwipe: 1
+  swipeTriggerThreshold: 0.5
+  swipeSwitchCooldown: 0.9
+--- !u!114 &981538052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981538046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd83a7df40254ff0aa84825c3efb587c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HandLandmarkVisualizer
+  host: 0.0.0.0
+  port: 55010
+  listenOnStart: 1
+  logPackets: 0
+  waterfall: {fileID: 981538049}
+  worldWidth: 12.8
+  worldHeight: 8
+  zOffset: -0.18
+  mirrorX: 0
+  hideWhenStale: 1
+  staleAfterSeconds: 0.75
+  visible: 1
+  toggleVisibilityKey: 104
+  jointRadius: 0.035
+  lineWidth: 0.018
+  positionResponse: 28
+  jointColor: {r: 0, g: 0.88, b: 1, a: 0.9}
+  lineColor: {r: 1, g: 1, b: 1, a: 0.42}
+  pointColor: {r: 0.3, g: 1, b: 0.62, a: 1}
+  fistColor: {r: 1, g: 1, b: 1, a: 0.82}
+  gestureColorResponse: 8
 --- !u!1 &992788407
 GameObject:
   m_ObjectHideFlags: 0
@@ -3745,10 +3784,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fdeca57aba5444292698f7040b8a9dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OutputModeManager
-  defaultMode: 0
+  defaultMode: 3
   logSelectedMode: 1
   useEditorPreviewMode: 1
-  editorPreviewMode: 0
+  editorPreviewMode: 3
   useRootNameFallback: 1
   waterfallRootNames:
   - BackgroundRoot
@@ -3780,6 +3819,13 @@ MonoBehaviour:
     objectsToEnable: []
     objectsToDisable: []
   - mode: 3
+    width: 1920
+    height: 1080
+    fullscreen: 0
+    applyResolution: 1
+    objectsToEnable: []
+    objectsToDisable: []
+  - mode: 4
     width: 1280
     height: 800
     fullscreen: 0

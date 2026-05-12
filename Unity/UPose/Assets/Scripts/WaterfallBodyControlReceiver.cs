@@ -55,10 +55,17 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
     public Vector2 upwardStreamProbabilityRange = new Vector2(0.18f, 0.62f);
     public Vector2 freezeProbabilityRange = new Vector2(0.08f, 0.34f);
     public Vector2 labelAlphaRange = new Vector2(0.34f, 0.78f);
+    public bool recomposeOnPulse = true;
+    public float pulseRecomposeAmount = 0.85f;
     public float asymmetryRecomposeThreshold = 0.08f;
     public float asymmetryRecomposeGain = 1.8f;
     public float asymmetryRecomposeCooldown = 0.35f;
     public float asymmetryDeltaTrigger = 0.06f;
+
+    [Header("Mode Switching")]
+    public bool switchWaterfallModeOnSwipe = true;
+    public float swipeTriggerThreshold = 0.5f;
+    public float swipeSwitchCooldown = 0.9f;
 
     private readonly ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
     private UdpClient udpClient;
@@ -69,10 +76,14 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
     private BodyControls smoothedControls = BodyControls.Default;
     private float lastPacketTime = -999f;
     private float previousPulse;
+    private float previousSwipe;
     private float previousAccentSource;
     private float previousAsymmetry;
     private float lastRecomposeTime = -999f;
+    private float lastSwipeSwitchTime = -999f;
     private float pulseBoostTimer;
+    private bool pendingPulseTrigger;
+    private bool pendingSwipeTrigger;
 
     [Serializable]
     private struct BodyControls
@@ -85,6 +96,7 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
         public float height;
         public float upper;
         public float lower;
+        public float swipe;
 
         public static BodyControls Default
         {
@@ -99,7 +111,8 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
                     asymmetry = 0f,
                     height = 1f,
                     upper = 0f,
-                    lower = 0f
+                    lower = 0f,
+                    swipe = 0f
                 };
             }
         }
@@ -114,6 +127,7 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
             height = Mathf.Clamp01(height);
             upper = Mathf.Clamp01(upper);
             lower = Mathf.Clamp01(lower);
+            swipe = Mathf.Clamp01(swipe);
         }
 
         public static BodyControls Lerp(BodyControls a, BodyControls b, float t)
@@ -127,7 +141,8 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
                 asymmetry = Mathf.Lerp(a.asymmetry, b.asymmetry, t),
                 height = Mathf.Lerp(a.height, b.height, t),
                 upper = Mathf.Lerp(a.upper, b.upper, t),
-                lower = Mathf.Lerp(a.lower, b.lower, t)
+                lower = Mathf.Lerp(a.lower, b.lower, t),
+                swipe = Mathf.Lerp(a.swipe, b.swipe, t)
             };
         }
     }
@@ -259,6 +274,8 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
             {
                 targetControls = controls;
                 lastPacketTime = Time.time;
+                pendingPulseTrigger |= controls.pulse >= pulseTriggerThreshold;
+                pendingSwipeTrigger |= controls.swipe >= swipeTriggerThreshold;
 
                 if (logPackets)
                     Debug.Log($"[WaterfallBodyControlReceiver] energy={controls.energy:F2} presence={controls.presence:F2} pulse={controls.pulse:F2}");
@@ -320,6 +337,9 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
                 case "lower":
                     next.lower = value;
                     break;
+                case "swipe":
+                    next.swipe = value;
+                    break;
             }
         }
 
@@ -333,8 +353,16 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
         if (waterfall == null)
             return;
 
+        bool swipeTriggered = pendingSwipeTrigger || (smoothedControls.swipe >= swipeTriggerThreshold && previousSwipe < swipeTriggerThreshold);
+        pendingSwipeTrigger = false;
+        if (swipeTriggered)
+            TrySwitchWaterfallMode();
+
         if (onlyAffectWaterfallA && waterfall.visualMode != WaterfallVisualMode.DataWaterfallVertical)
+        {
+            previousSwipe = smoothedControls.swipe;
             return;
+        }
 
         float presenceEnergy = Mathf.Clamp01(smoothedControls.presence * 0.65f + smoothedControls.energy * 0.35f);
         float speed = Mathf.Lerp(speedRange.x, speedRange.y, smoothedControls.energy);
@@ -344,7 +372,8 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
         float accent = Mathf.Lerp(accentRange.x, accentRange.y, Mathf.Clamp01(smoothedControls.asymmetry * 0.7f + smoothedControls.upper * 0.3f));
         float freeze = Mathf.Lerp(freezeProbabilityRange.x, freezeProbabilityRange.y, smoothedControls.stillness);
 
-        bool pulseTriggered = smoothedControls.pulse >= pulseTriggerThreshold && previousPulse < pulseTriggerThreshold;
+        bool pulseTriggered = pendingPulseTrigger || (smoothedControls.pulse >= pulseTriggerThreshold && previousPulse < pulseTriggerThreshold);
+        pendingPulseTrigger = false;
         if (pulseTriggered)
             pulseBoostTimer = Mathf.Max(pulseBoostTimer, pulseBoostDuration);
 
@@ -374,7 +403,10 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
         waterfall.verticalLabelAlpha = Mathf.Lerp(labelAlphaRange.x, labelAlphaRange.y, smoothedControls.presence);
 
         if (pulseTriggered)
+        {
             waterfall.TriggerPulse(smoothedControls.pulse);
+            TryRecomposeFromPulse(smoothedControls.pulse);
+        }
 
         float accentSource = Mathf.Clamp01(smoothedControls.asymmetry * 0.7f + smoothedControls.energy * 0.3f);
         if (accentSource >= accentTriggerThreshold && previousAccentSource < accentTriggerThreshold)
@@ -383,8 +415,38 @@ public class WaterfallBodyControlReceiver : MonoBehaviour
         TryRecomposeFromAsymmetry();
 
         previousPulse = smoothedControls.pulse;
+        previousSwipe = smoothedControls.swipe;
         previousAccentSource = accentSource;
         previousAsymmetry = smoothedControls.asymmetry;
+    }
+
+    private void TrySwitchWaterfallMode()
+    {
+        if (!switchWaterfallModeOnSwipe)
+            return;
+
+        if (Time.time - lastSwipeSwitchTime < swipeSwitchCooldown)
+            return;
+
+        waterfall.ToggleWaterfallAB();
+        lastSwipeSwitchTime = Time.time;
+        Debug.Log($"[WaterfallBodyControlReceiver] Swipe switched to {waterfall.preset}");
+    }
+
+    private void TryRecomposeFromPulse(float pulseAmount)
+    {
+        if (!recomposeOnPulse)
+            return;
+
+        if (waterfall.visualMode != WaterfallVisualMode.DataWaterfallVertical)
+            return;
+
+        if (Time.time - lastRecomposeTime < asymmetryRecomposeCooldown)
+            return;
+
+        float amount = Mathf.Clamp01(Mathf.Max(pulseAmount, pulseRecomposeAmount));
+        waterfall.RecomposeVerticalStreams(amount);
+        lastRecomposeTime = Time.time;
     }
 
     private void ApplyPulseBoosts(ref float speed, ref float density, ref float glitch, ref float accent, ref float freeze, float pulseBoost)
