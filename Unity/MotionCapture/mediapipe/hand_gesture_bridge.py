@@ -35,6 +35,7 @@ OSC_SIGNAL_ORDER = (
     "/hand/right/point",
     "/hand/right/open",
     "/hand/swipe",
+    "/hand/visible",
 )
 
 MIDI_SIGNAL_TO_CC = {
@@ -49,6 +50,7 @@ MIDI_SIGNAL_TO_CC = {
     "right_point": 28,
     "right_open": 29,
     "swipe": 30,
+    "hand_visible": 31,
 }
 
 HAND_CONNECTIONS = (
@@ -114,7 +116,7 @@ def unity_control_message(signals):
 def hand_landmark_message(hand_data, signals):
     lines = ["hland"]
     lines.append(f"hands|{len(hand_data)}")
-    for name in ("point", "open", "fist", "left_point", "left_open", "right_point", "right_open", "pulse", "swipe"):
+    for name in ("point", "open", "fist", "left_point", "left_open", "right_point", "right_open", "pulse", "swipe", "hand_visible"):
         lines.append(f"gesture|{name}|{clamp01(signals.get(name, 0.0)):.6f}")
 
     for hand_index, hand in enumerate(hand_data):
@@ -221,8 +223,10 @@ class GestureAnalyzer:
         self.previous_energy = 0.0
         self.pulse_value = 0.0
         self.swipe_value = 0.0
+        self.hand_visible_value = 0.0
         self.last_pulse_time = 0.0
         self.last_swipe_time = 0.0
+        self.previous_hand_visible = False
         self.smoothed = {
             "energy": 0.0,
             "stillness": 1.0,
@@ -242,6 +246,7 @@ class GestureAnalyzer:
             "right_point": 0.0,
             "right_open": 0.0,
             "right_fist": 0.0,
+            "hand_visible": 0.0,
         }
 
     def compute(self, hand_data, now):
@@ -250,6 +255,11 @@ class GestureAnalyzer:
             dt = max(1e-5, min(0.25, now - self.previous_time))
 
         if not hand_data:
+            if self.previous_hand_visible:
+                self.hand_visible_value = 1.0
+            else:
+                self.hand_visible_value *= math.exp(-dt / max(0.001, self.args.event_decay))
+
             raw = dict(self.smoothed)
             raw.update({
                 "energy": 0.0,
@@ -268,6 +278,7 @@ class GestureAnalyzer:
                 "right_point": 0.0,
                 "right_open": 0.0,
                 "right_fist": 0.0,
+                "hand_visible": self.hand_visible_value,
             })
             self.previous_centers = {}
             self.previous_time = now
@@ -275,6 +286,7 @@ class GestureAnalyzer:
             self.previous_energy = 0.0
             self.pulse_value = 0.0
             self.swipe_value = 0.0
+            self.previous_hand_visible = False
             return self._smooth(raw, dt)
 
         metrics = {}
@@ -328,6 +340,11 @@ class GestureAnalyzer:
         else:
             self.pulse_value *= math.exp(-dt / max(0.001, self.args.event_decay))
 
+        if not self.previous_hand_visible:
+            self.hand_visible_value = 1.0
+        else:
+            self.hand_visible_value *= math.exp(-dt / max(0.001, self.args.event_decay))
+
         raw = {
             "energy": energy,
             "stillness": 1.0 - energy,
@@ -347,12 +364,14 @@ class GestureAnalyzer:
             "right_point": right_point,
             "right_open": right_open,
             "right_fist": right.get("fist", 0.0),
+            "hand_visible": self.hand_visible_value,
         }
 
         self.previous_centers = next_centers
         self.previous_time = now
         self.previous_point = point
         self.previous_energy = energy
+        self.previous_hand_visible = True
         return self._smooth(raw, dt)
 
     def _hand_side(self, hand):
@@ -405,7 +424,7 @@ class GestureAnalyzer:
     def _smooth(self, raw, dt):
         alpha = 1.0 - math.exp(-dt / max(0.001, self.args.smoothing))
         for name, value in raw.items():
-            if name in ("pulse", "swipe"):
+            if name in ("pulse", "swipe", "hand_visible"):
                 self.smoothed[name] = clamp01(value)
             else:
                 self.smoothed[name] = clamp01(lerp(self.smoothed.get(name, 0.0), value, alpha))
@@ -433,7 +452,7 @@ def draw_status(image, signals):
     lines = [
         f"L point {signals['left_point']:.2f}  L open {signals['left_open']:.2f}",
         f"R point {signals['right_point']:.2f}  R open {signals['right_open']:.2f}",
-        f"energy {signals['energy']:.2f}  pulse {signals['pulse']:.2f}  swipe {signals['swipe']:.2f}",
+        f"visible {signals['hand_visible']:.0f}  energy {signals['energy']:.2f}  pulse {signals['pulse']:.2f}  swipe {signals['swipe']:.2f}",
     ]
     y = 24
     for line in lines:
@@ -575,6 +594,7 @@ def main():
                         "/hand/right/point": signals["right_point"],
                         "/hand/right/open": signals["right_open"],
                         "/hand/swipe": signals["swipe"],
+                        "/hand/visible": signals["hand_visible"],
                     }
                     for address in OSC_SIGNAL_ORDER:
                         osc_sock.sendto(osc_message(address, osc_values[address]), (args.vcv_host, args.vcv_port))
@@ -603,7 +623,7 @@ def main():
                     "[hand-gesture] "
                     + " ".join(
                         f"{name}={signals[name]:.2f}"
-                        for name in ("energy", "presence", "pulse", "swipe", "left_point", "left_open", "right_point", "right_open")
+                        for name in ("energy", "presence", "hand_visible", "pulse", "swipe", "left_point", "left_open", "right_point", "right_open")
                     )
                 )
                 last_status = now

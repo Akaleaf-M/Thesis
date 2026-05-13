@@ -52,6 +52,8 @@ For a manually built player, launch with:
 ./SonicArts.app/Contents/MacOS/UPose --mode SonicArts
 ```
 
+See `docs/PYTHON_STARTUP.md` for the Sonic Arts Python startup checklist.
+
 ## Optional Hand Visualizer
 
 `HandLandmarkVisualizer` draws a hand from primitive GameObjects:
@@ -168,6 +170,7 @@ Additional OSC addresses:
 | `/hand/right/point` | right-hand index finger extended while the other fingers are folded |
 | `/hand/right/open` | right-hand open / fist amount, where fist is `0.0` and open palm is `1.0` |
 | `/hand/swipe` | fast horizontal hand motion; event channel for WaterfallA/B switching |
+| `/hand/visible` | visibility change trigger; fires once when hands appear and once when hands disappear |
 
 ## MIDI CC Mapping
 
@@ -186,6 +189,7 @@ Default MIDI CC output:
 | `right point` | `28` |
 | `right open / fist` | `29` |
 | `swipe` | `30` |
+| `hand visibility trigger` | `31` |
 
 Suggested first VCV assignments:
 
@@ -200,6 +204,7 @@ Suggested first VCV assignments:
 | `right point / CC28` | right-hand select, freeze, or routing focus |
 | `right open / fist / CC29` | `0V` when right fist, `10V` when right open; use as one expand-contract macro |
 | `swipe / CC30` | WaterfallA/B switching gesture; can also trigger VCV scene fills |
+| `hand visibility trigger / CC31` | VCV Run toggle trigger when hands enter or leave the camera |
 
 Keep modulation depths small first. The VCV patch should remain self-generating; gestures should steer it rather than perform every note directly.
 
@@ -213,6 +218,7 @@ Current gesture detection:
 - `left open` / `right open`: index, middle, ring, and pinky tips are extended away from the wrist. This is the merged open / fist control: fist produces `0.0`, open palm produces `1.0`.
 - `pulse`: fires on point onset or sudden energy jump. Unity uses it to trigger `WaterfallA` pulse and vertical stream recomposition.
 - `swipe`: fast horizontal hand motion. Unity uses it to toggle between `WaterfallA` and `WaterfallB`.
+- `hand visibility trigger`: fires once when one or more hands appear, and fires once again when no hands remain visible. It does not stay high while hands remain visible.
 
 Recommended performance vocabulary:
 
